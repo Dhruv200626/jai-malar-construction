@@ -73,10 +73,10 @@
   </div>
 </div>
 
-<!-- Today's Attendance + Upcoming Projects -->
+<!-- Today's Attendance + Inventory + Upcoming Projects -->
 <div class="row g-4">
   <div class="col-lg-4">
-    <div class="card">
+    <div class="card mb-4">
       <div class="card-header"><h2 class="card-title"><i class="fas fa-clipboard-check" style="color:#22c55e;margin-right:8px;"></i>Today's Attendance</h2><a href="{% url 'attendance:list' %}" style="font-size:12px;color:#1a6fc4;">View All</a></div>
       <div class="card-body">
         <div class="row g-2 text-center">
@@ -84,6 +84,31 @@
           <div class="col-6"><div style="background:#fee2e2;border-radius:10px;padding:16px 8px;"><div style="font-size:24px;font-weight:700;color:#ef4444;">{{ att_absent }}</div><div style="font-size:12px;color:#64748b;">Absent</div></div></div>
         </div>
         <div style="margin-top:16px;text-align:center;"><a href="{% url 'attendance:mark' %}" class="btn btn-primary" style="width:100%;"><i class="fas fa-plus"></i> Mark Attendance</a></div>
+      </div>
+    </div>
+
+    <!-- Inventory Summary -->
+    <div class="card">
+      <div class="card-header"><h2 class="card-title"><i class="fas fa-boxes" style="color:#f97316;margin-right:8px;"></i>Inventory</h2><a href="{% url 'materials:list' %}" style="font-size:12px;color:#1a6fc4;">View All</a></div>
+      <div class="card-body">
+        <div class="row g-2 text-center mb-3">
+          <div class="col-6"><div style="background:#fff7ed;border-radius:10px;padding:12px 8px;"><div style="font-size:20px;font-weight:700;color:#f97316;">{{ total_materials }}</div><div style="font-size:11px;color:#64748b;">Total Items</div></div></div>
+          <div class="col-6"><div style="background:{% if low_stock_count > 0 %}#fee2e2{% else %}#f0fdf4{% endif %};border-radius:10px;padding:12px 8px;"><div style="font-size:20px;font-weight:700;color:{% if low_stock_count > 0 %}#ef4444{% else %}#22c55e{% endif %};">{{ low_stock_count }}</div><div style="font-size:11px;color:#64748b;">Low Stock</div></div></div>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px;margin-bottom:12px;">
+          <div style="font-size:11px;color:#64748b;margin-bottom:2px;">Total Stock Value</div>
+          <div style="font-size:16px;font-weight:700;color:#1e293b;">₹{{ total_stock_value|floatformat:0|intcomma }}</div>
+        </div>
+        {% if low_stock_items %}
+        <div style="font-size:11px;font-weight:600;color:#ef4444;margin-bottom:6px;"><i class="fas fa-exclamation-triangle"></i> Low Stock Alert</div>
+        {% for m in low_stock_items %}
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f1f5f9;">
+          <span style="color:#1e293b;">{{ m.name|truncatechars:18 }}</span>
+          <span style="color:#ef4444;font-weight:600;">{{ m.current_stock }} {{ m.get_unit_display }}</span>
+        </div>
+        {% endfor %}
+        {% endif %}
+        <div style="margin-top:12px;"><a href="{% url 'materials:add_transaction' %}" class="btn btn-outline-secondary" style="width:100%;font-size:13px;"><i class="fas fa-plus"></i> Add Material</a></div>
       </div>
     </div>
   </div>

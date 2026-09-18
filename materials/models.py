@@ -106,8 +106,9 @@ class MaterialTransaction(models.Model):
         if self.unit_price and self.quantity:
             self.total_amount = self.unit_price * self.quantity
 
-        # Adjust stock
-        if self.pk is None:  # New transaction only
+        # Adjust stock on new transactions only
+        is_new = self.pk is None
+        if is_new:
             mat = self.material
             qty = float(self.quantity)
             t = self.transaction_type
@@ -118,3 +119,21 @@ class MaterialTransaction(models.Model):
             mat.save(update_fields=['current_stock'])
 
         super().save(*args, **kwargs)
+
+        # Auto-create an Expense record for purchases so dashboard & reports stay in sync
+        if is_new and self.transaction_type == 'purchase' and float(self.total_amount) > 0:
+            try:
+                from expenses.models import Expense
+                Expense.objects.create(
+                    project=self.project,
+                    category='material',
+                    amount=self.total_amount,
+                    date=self.date,
+                    vendor=str(self.supplier) if self.supplier else self.material.name,
+                    payment_method='cash',
+                    description=f'Auto: {self.material.name} x {self.quantity} {self.material.get_unit_display()} — {self.remarks}',
+                    approval_status='approved',
+                    created_by=self.created_by,
+                )
+            except Exception:
+                pass  # Never block the transaction save

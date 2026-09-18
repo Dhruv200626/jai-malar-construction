@@ -78,7 +78,7 @@ def monthly_reports(request):
         half_days = att_qs.filter(status='half_day').count()
         total_mandays = man_days + (half_days * 0.5)
 
-        # Cost data
+        # Cost data — from approved Expense records (material purchases auto-create these)
         exp_qs = Expense.objects.filter(
             project=project,
             date__year=year, date__month=month,
@@ -91,6 +91,7 @@ def monthly_reports(request):
                 cost_breakdown[label] = float(total)
 
         total_cost = exp_qs.aggregate(t=Sum('amount'))['t'] or 0
+        material_cost_exp = exp_qs.filter(category='material').aggregate(t=Sum('amount'))['t'] or 0
 
         report_data = {
             'project': project,
@@ -98,7 +99,7 @@ def monthly_reports(request):
             'total_cost': total_cost,
             'cost_breakdown': cost_breakdown,
             'labour_cost': exp_qs.filter(category__in=['labour', 'salary']).aggregate(t=Sum('amount'))['t'] or 0,
-            'material_cost': exp_qs.filter(category='material').aggregate(t=Sum('amount'))['t'] or 0,
+            'material_cost': material_cost_exp,
             'equipment_cost': exp_qs.filter(category='equipment').aggregate(t=Sum('amount'))['t'] or 0,
             'other_cost': exp_qs.exclude(category__in=['labour', 'salary', 'material', 'equipment']).aggregate(t=Sum('amount'))['t'] or 0,
         }

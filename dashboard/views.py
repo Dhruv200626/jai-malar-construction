@@ -11,6 +11,7 @@ def index(request):
     from employees.models import Employee
     from expenses.models import Expense
     from attendance.models import Attendance
+    from materials.models import Material, MaterialTransaction
 
     now = timezone.now()
     this_month = {'date__year': now.year, 'date__month': now.month}
@@ -21,7 +22,7 @@ def index(request):
     completed_projects = Project.objects.filter(status='completed').count()
     total_employees = Employee.objects.filter(status='active').count()
 
-    # Monthly costs
+    # Monthly costs — sourced from Expense records (material purchases auto-create these)
     approved_expenses = Expense.objects.filter(
         approval_status='approved', **this_month
     )
@@ -30,6 +31,13 @@ def index(request):
     labour_cost = approved_expenses.filter(category__in=['labour', 'salary']).aggregate(t=Sum('amount'))['t'] or 0
     equipment_cost = approved_expenses.filter(category='equipment').aggregate(t=Sum('amount'))['t'] or 0
     other_cost = float(monthly_cost) - float(material_cost) - float(labour_cost) - float(equipment_cost)
+
+    # Live inventory stats
+    active_materials = Material.objects.filter(is_active=True)
+    total_materials = active_materials.count()
+    low_stock_items = [m for m in active_materials if m.is_low_stock]
+    low_stock_count = len(low_stock_items)
+    total_stock_value = sum(float(m.stock_value) for m in active_materials)
 
     # Upcoming / active projects
     upcoming_projects = Project.objects.filter(
@@ -73,4 +81,8 @@ def index(request):
         'att_present': att_present,
         'att_absent': att_absent,
         'current_time': now,
+        'total_materials': total_materials,
+        'low_stock_count': low_stock_count,
+        'low_stock_items': low_stock_items[:5],
+        'total_stock_value': total_stock_value,
     })
