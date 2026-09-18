@@ -63,12 +63,6 @@ def profile_view(request):
 
 
 @login_required
-def settings_view(request):
-    """Settings page"""
-    return render(request, 'accounts/settings.html')
-
-
-@login_required
 def users_list(request):
     """User management - Admin only"""
     if not request.user.is_admin():

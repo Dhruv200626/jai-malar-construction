@@ -11,7 +11,7 @@ from projects.models import Project
 
 @login_required
 def attendance_list(request):
-    date_filter = request.GET.get('date', str(timezone.now().date()))
+    date_filter = request.GET.get('date', timezone.now().date().isoformat())
     project_id = request.GET.get('project', '')
     status = request.GET.get('status', '')
     q = request.GET.get('q', '')
@@ -45,7 +45,7 @@ def attendance_list(request):
 @login_required
 def mark_attendance(request):
     projects = Project.objects.filter(status='active')
-    today = timezone.now().date()
+    today = timezone.now().date().isoformat()
 
     if request.method == 'POST':
         project_id = request.POST.get('project')
@@ -75,12 +75,31 @@ def mark_attendance(request):
                 continue
 
         messages.success(request, f'Attendance marked for {saved} workers.')
-        return redirect('attendance:list')
+        # Redirect to list filtered by date and project so records are visible immediately
+        # Use the raw date string from POST (already in YYYY-MM-DD from the hidden input)
+        from django.urls import reverse
+        redirect_url = reverse('attendance:list') + f"?date={date}"
+        if project_id:
+            redirect_url += f"&project={project_id}"
+        return redirect(redirect_url)
 
     # GET: load employees by project
+    # 'all' = all active employees regardless of project assignment
     project_id = request.GET.get('project', '')
     employees = []
-    if project_id:
+    selected_project = project_id
+
+    if project_id == 'all':
+        # All active employees regardless of project assignment
+        employees = Employee.objects.filter(status='active').order_by('full_name')
+        existing = {
+            a.employee_id: a
+            for a in Attendance.objects.filter(date=today, employee__in=employees)
+        }
+        for emp in employees:
+            emp.today_att = existing.get(emp.pk)
+
+    elif project_id:
         employees = Employee.objects.filter(
             assigned_project_id=project_id, status='active'
         ).order_by('full_name')
@@ -88,8 +107,7 @@ def mark_attendance(request):
         existing = {
             a.employee_id: a
             for a in Attendance.objects.filter(
-                project_id=project_id, date=today,
-                employee__in=employees
+                date=today, employee__in=employees
             )
         }
         for emp in employees:
@@ -98,7 +116,7 @@ def mark_attendance(request):
     return render(request, 'attendance/mark.html', {
         'page_title': 'Mark Attendance', 'projects': projects,
         'employees': employees, 'today': today,
-        'selected_project': project_id,
+        'selected_project': selected_project,
         'status_choices': Attendance.STATUS_CHOICES,
     })
 

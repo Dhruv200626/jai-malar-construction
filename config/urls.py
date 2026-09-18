@@ -23,7 +23,6 @@ urlpatterns = [
     path('suppliers/', include('suppliers.urls')),
     path('clients/', include('clients.urls')),
     path('reports/', include('reports.urls')),
-    path('notifications/', include('notifications.urls')),
 
     # REST API
     path('api/', include('accounts.api_urls')),

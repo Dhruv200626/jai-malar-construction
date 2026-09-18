@@ -48,17 +48,11 @@
       <span class="sidebar-section-label">Reports</span>
       <a href="{% url 'reports:daily' %}" class="sidebar-item"><i class="fas fa-file-alt"></i><span>Daily Reports</span></a>
       <a href="{% url 'reports:monthly' %}" class="sidebar-item"><i class="fas fa-calendar-alt"></i><span>Monthly Reports</span></a>
-      <a href="{% url 'reports:analytics' %}" class="sidebar-item"><i class="fas fa-chart-bar"></i><span>Analytics</span></a>
 
-      <span class="sidebar-section-label">System</span>
-      <a href="{% url 'notifications:list' %}" class="sidebar-item">
-        <i class="fas fa-bell"></i><span>Notifications</span>
-        {% if unread_notifications_count > 0 %}<span class="sidebar-badge">{{ unread_notifications_count }}</span>{% endif %}
-      </a>
       {% if user.is_admin %}
+      <span class="sidebar-section-label">System</span>
       <a href="{% url 'accounts:users_list' %}" class="sidebar-item"><i class="fas fa-user-cog"></i><span>Users</span></a>
       {% endif %}
-      <a href="{% url 'accounts:settings' %}" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
     </nav>
 
     <div class="sidebar-footer">
@@ -83,23 +77,6 @@
 
       <div class="header-right">
         <div style="position:relative;">
-          <button class="btn-header-action" id="notifBtn" aria-label="Notifications">
-            <i class="fas fa-bell"></i>
-            {% if unread_notifications_count > 0 %}<span class="notification-badge">{{ unread_notifications_count }}</span>{% endif %}
-          </button>
-          <div id="notifDropdown" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:320px;background:white;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.10);z-index:1000;overflow:hidden;">
-            <div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-weight:600;font-size:14px;">Notifications</span>
-              <a href="{% url 'notifications:list' %}" style="font-size:12px;color:#1a6fc4;">View all</a>
-            </div>
-            <div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px;">
-              <i class="fas fa-bell-slash" style="font-size:24px;margin-bottom:8px;display:block;"></i>
-              No new notifications
-            </div>
-          </div>
-        </div>
-
-        <div style="position:relative;">
           <button class="user-avatar" id="userMenuBtn" aria-label="User menu">
             {% if user.profile_photo %}<img src="{{ user.profile_photo.url }}" alt="{{ user.full_name }}">{% else %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% endif %}
           </button>
@@ -109,7 +86,6 @@
               <div style="font-size:11px;color:#94a3b8;">{{ user.role|default:"User" }}</div>
             </div>
             <a href="{% url 'accounts:profile' %}" style="display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#1e293b;text-decoration:none;"><i class="fas fa-user" style="color:#64748b;width:16px;"></i> My Profile</a>
-            <a href="{% url 'accounts:settings' %}" style="display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#1e293b;text-decoration:none;"><i class="fas fa-cog" style="color:#64748b;width:16px;"></i> Settings</a>
             <div style="border-top:1px solid #e2e8f0;margin:4px 0;"></div>
             <a href="{% url 'accounts:logout' %}" style="display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#ef4444;text-decoration:none;"><i class="fas fa-sign-out-alt" style="width:16px;"></i> Logout</a>
           </div>
@@ -143,10 +119,6 @@
       <div class="mobile-fab">
         <button class="mobile-fab-btn" id="fabBtn" aria-label="Quick actions"><i class="fas fa-plus"></i></button>
       </div>
-      <a href="{% url 'notifications:list' %}" class="mobile-nav-item" style="position:relative;">
-        <i class="fas fa-bell"></i><span>Alerts</span>
-        {% if unread_notifications_count > 0 %}<span style="position:absolute;top:6px;right:calc(50% - 14px);background:#ef4444;color:white;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">{{ unread_notifications_count }}</span>{% endif %}
-      </a>
       <a href="{% url 'accounts:profile' %}" class="mobile-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
     </div>
   </nav>
@@ -192,7 +164,7 @@
 <script src="{% static 'js/main.js' %}"></script>
 
 <style>
-  #notifDropdown.show, #userDropdown.show { display: block !important; }
+  #userDropdown.show { display: block !important; }
 </style>
 
 {% block extra_js %}{% endblock %}
