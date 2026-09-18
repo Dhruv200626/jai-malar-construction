@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Add Daily Report | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header"><div><div class="breadcrumb-custom"><a href="{% url 'reports:daily' %}">Daily Reports</a> / Add</div><h1 class="page-title">Submit Daily Report</h1></div><a href="{% url 'reports:daily' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a></div>
+<div class="card"><div class="card-body">
+<form method="post">{% csrf_token %}
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label">Project *</label><select name="project" class="form-select" required><option value="">-- Select Project --</option>{% for p in projects %}<option value="{{ p.pk }}" {% if request.GET.project == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><label class="form-label">Report Date *</label><input type="date" name="report_date" class="form-control" value="{{ today }}" required></div>
+    <div class="col-md-3"><label class="form-label">Weather</label><select name="weather" class="form-select">{% for val, label in weather_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><label class="form-label">Total Workers</label><input type="number" name="total_workers" class="form-control" min="0" value="0"></div>
+    <div class="col-md-3"><label class="form-label">Present Workers</label><input type="number" name="present_workers" class="form-control" min="0" value="0"></div>
+    <div class="col-md-6"></div>
+    <div class="col-md-6"><label class="form-label">Work Completed</label><textarea name="work_completed" class="form-control" rows="3" placeholder="Describe work completed today..."></textarea></div>
+    <div class="col-md-6"><label class="form-label">Work In Progress</label><textarea name="work_in_progress" class="form-control" rows="3" placeholder="Ongoing work..."></textarea></div>
+    <div class="col-md-6"><label class="form-label">Materials Used</label><textarea name="materials_used" class="form-control" rows="2" placeholder="e.g. Cement: 20 Bags, Sand: 2 Trucks"></textarea></div>
+    <div class="col-md-6"><label class="form-label">Equipment Used</label><textarea name="equipment_used" class="form-control" rows="2" placeholder="e.g. JCB, Concrete Mixer"></textarea></div>
+    <div class="col-md-6"><label class="form-label">Issues / Problems</label><textarea name="issues" class="form-control" rows="2" placeholder="Any issues faced..."></textarea></div>
+    <div class="col-md-6"><label class="form-label">Safety Incidents</label><textarea name="safety_incidents" class="form-control" rows="2" placeholder="Any safety incidents (if none, leave blank)..."></textarea></div>
+    <div class="col-12"><label class="form-label">Supervisor Remarks</label><textarea name="supervisor_remarks" class="form-control" rows="3" placeholder="Overall remarks..."></textarea></div>
+  </div>
+  <div style="margin-top:16px;display:flex;gap:8px;">
+    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Report</button>
+    <a href="{% url 'reports:daily' %}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+</div></div>
+{% endblock %}

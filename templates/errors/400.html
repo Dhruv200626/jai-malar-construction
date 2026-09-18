@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}400 Bad Request | Jai Malhar{% endblock %}
+{% block content %}
+<div class="error-page">
+  <div>
+    <div class="error-code">400</div>
+    <h1 class="error-title">Bad Request</h1>
+    <p class="error-text">The request could not be understood by the server. Please check your input and try again.</p>
+    <a href="{% url 'dashboard:index' %}" class="btn btn-primary"><i class="fas fa-home"></i> Go to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

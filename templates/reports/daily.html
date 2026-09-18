@@ -1,0 +1,58 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Daily Reports | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><div class="breadcrumb-custom"><a href="{% url 'dashboard:index' %}">Dashboard</a> / Daily Reports</div><h1 class="page-title">Daily Reports</h1></div>
+  <a href="{% url 'reports:daily_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Report</a>
+</div>
+<div class="card mb-3"><div class="card-body" style="padding:14px;">
+  <form method="get" class="row g-2">
+    <div class="col-md-4"><select name="project" class="form-select"><option value="">All Projects</option>{% for p in projects %}<option value="{{ p.pk }}" {% if project_id == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name|truncatechars:25 }}</option>{% endfor %}</select></div>
+    <div class="col-auto"><button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i></button></div>
+    {% if project_id %}<div class="col-auto"><a href="{% url 'reports:daily' %}" class="btn btn-outline-secondary"><i class="fas fa-times"></i></a></div>{% endif %}
+  </form>
+</div></div>
+
+{% if reports %}
+<div class="row g-3">
+  {% for r in reports %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card">
+      <div class="card-body" style="padding:18px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <h3 style="font-size:14px;font-weight:700;color:#1e293b;">{{ r.project.name|truncatechars:22 }}</h3>
+            <p style="font-size:12px;color:#64748b;">{{ r.report_date|date:"l, d M Y" }}</p>
+          </div>
+          <span class="badge badge-{% if r.weather == 'sunny' %}active{% elif r.weather == 'rainy' %}inactive{% else %}planning{% endif %}">
+            {% if r.weather == 'sunny' %}<i class="fas fa-sun"></i>{% elif r.weather == 'rainy' %}<i class="fas fa-cloud-rain"></i>{% elif r.weather == 'cloudy' %}<i class="fas fa-cloud"></i>{% else %}<i class="fas fa-wind"></i>{% endif %}
+            {{ r.get_weather_display }}
+          </span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div style="background:#f0f9ff;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#1a6fc4;">{{ r.present_workers }}</div><div style="font-size:10px;color:#64748b;">Present</div></div>
+          <div style="background:#f0fdf4;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#22c55e;">{{ r.total_workers }}</div><div style="font-size:10px;color:#64748b;">Total</div></div>
+        </div>
+        {% if r.work_completed %}<div style="font-size:12px;color:#64748b;margin-bottom:6px;"><strong>Completed:</strong> {{ r.work_completed|truncatechars:60 }}</div>{% endif %}
+        {% if r.issues %}<div style="font-size:12px;color:#ef4444;margin-bottom:6px;"><i class="fas fa-exclamation-triangle" style="margin-right:4px;"></i>{{ r.issues|truncatechars:50 }}</div>{% endif %}
+        <div style="font-size:11px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:8px;margin-top:8px;">
+          By: {{ r.submitted_by.get_full_name|default:'—' }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% if reports.has_other_pages %}
+<div style="display:flex;justify-content:center;margin-top:20px;">
+  <div class="pagination-custom">
+    {% if reports.has_previous %}<a href="?page={{ reports.previous_page_number }}&project={{ project_id }}" class="page-link-custom"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for n in reports.paginator.page_range %}<a href="?page={{ n }}&project={{ project_id }}" class="page-link-custom {% if reports.number == n %}active{% endif %}">{{ n }}</a>{% endfor %}
+    {% if reports.has_next %}<a href="?page={{ reports.next_page_number }}&project={{ project_id }}" class="page-link-custom"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% else %}
+<div class="card"><div class="empty-state"><i class="fas fa-file-alt empty-state-icon"></i><h3 class="empty-state-title">No daily reports</h3><a href="{% url 'reports:daily_add' %}" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Submit Report</a></div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Expenses | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><div class="breadcrumb-custom"><a href="{% url 'dashboard:index' %}">Dashboard</a> / Expenses</div><h1 class="page-title">Expenses</h1></div>
+  <a href="{% url 'expenses:add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Expense</a>
+</div>
+<div class="kpi-card blue mb-4" style="max-width:280px;"><div class="kpi-icon blue"><i class="fas fa-rupee-sign"></i></div><div class="kpi-value">₹{{ total|floatformat:0|intcomma }}</div><div class="kpi-label">Total (filtered)</div></div>
+<div class="card mb-3"><div class="card-body" style="padding:14px;">
+  <form method="get" class="row g-2">
+    <div class="col-md-3"><select name="category" class="form-select"><option value="">All Categories</option>{% for val, label in categories %}<option value="{{ val }}" {% if cat == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><select name="status" class="form-select"><option value="">All Status</option>{% for val, label in approval_choices %}<option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><select name="project" class="form-select"><option value="">All Projects</option>{% for p in projects %}<option value="{{ p.pk }}" {% if request.GET.project == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name|truncatechars:22 }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search..."></div>
+    <div class="col-auto"><button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i></button></div>
+    {% if q or cat or status %}<div class="col-auto"><a href="{% url 'expenses:list' %}" class="btn btn-outline-secondary"><i class="fas fa-times"></i></a></div>{% endif %}
+  </form>
+</div></div>
+{% if expenses %}
+<div class="table-wrapper">
+  <div class="table-responsive-custom">
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Category</th><th>Project</th><th>Vendor</th><th>Payment</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for e in expenses %}
+        <tr>
+          <td>{{ e.date|date:"d M Y" }}</td>
+          <td style="font-size:13px;">{{ e.get_category_display }}</td>
+          <td style="font-size:12px;">{{ e.project.name|default:'—'|truncatechars:15 }}</td>
+          <td style="font-size:13px;">{{ e.vendor|default:'—' }}</td>
+          <td style="font-size:12px;">{{ e.get_payment_method_display }}</td>
+          <td style="font-weight:700;">₹{{ e.amount|intcomma }}</td>
+          <td>
+            <span class="badge badge-{% if e.approval_status == 'approved' %}active{% elif e.approval_status == 'rejected' %}inactive{% else %}planning{% endif %}">{{ e.get_approval_status_display }}</span>
+          </td>
+          <td><div class="actions">
+            {% if e.approval_status == 'pending' %}
+            <form method="post" action="{% url 'expenses:approve' e.pk %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="action" value="approve"><button type="submit" class="btn btn-outline-secondary btn-sm btn-icon" style="color:#22c55e;" title="Approve"><i class="fas fa-check"></i></button></form>
+            <form method="post" action="{% url 'expenses:approve' e.pk %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="action" value="reject"><button type="submit" class="btn btn-outline-secondary btn-sm btn-icon" style="color:#ef4444;" title="Reject"><i class="fas fa-times"></i></button></form>
+            {% endif %}
+            <a href="{% url 'expenses:edit' e.pk %}" class="btn btn-outline-secondary btn-sm btn-icon"><i class="fas fa-edit"></i></a>
+            <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm btn-icon" style="color:#ef4444;" onclick="return confirm('Delete expense?')"><i class="fas fa-trash"></i></button></form>
+          </div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card"><div class="empty-state"><i class="fas fa-rupee-sign empty-state-icon"></i><h3 class="empty-state-title">No expenses found</h3><a href="{% url 'expenses:add' %}" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Add Expense</a></div></div>
+{% endif %}
+{% endblock %}

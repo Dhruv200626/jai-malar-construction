@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Add Transaction | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1 class="page-title">Add Material Transaction</h1></div><a href="{% url 'materials:transactions' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a></div>
+<div class="card" style="max-width:700px;"><div class="card-body">
+<form method="post">{% csrf_token %}
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label">Material *</label><select name="material" class="form-select" required><option value="">-- Select Material --</option>{% for m in materials %}<option value="{{ m.pk }}">{{ m.name }} (Stock: {{ m.current_stock }} {{ m.get_unit_display }})</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label">Transaction Type *</label><select name="transaction_type" class="form-select" required>{% for val, label in type_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-4"><label class="form-label">Quantity *</label><input type="number" name="quantity" class="form-control" min="0.01" step="0.01" required></div>
+    <div class="col-md-4"><label class="form-label">Unit Price (₹)</label><input type="number" name="unit_price" class="form-control" min="0" step="0.01" value="0"></div>
+    <div class="col-md-4"><label class="form-label">Date *</label><input type="date" name="date" class="form-control" value="{% now 'Y-m-d' %}" required></div>
+    <div class="col-md-6"><label class="form-label">Project</label><select name="project" class="form-select"><option value="">-- No Project --</option>{% for p in projects %}<option value="{{ p.pk }}">{{ p.name }}</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label">Supplier</label><select name="supplier" class="form-select"><option value="">-- No Supplier --</option>{% for s in suppliers %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}</select></div>
+    <div class="col-12"><label class="form-label">Remarks</label><textarea name="remarks" class="form-control" rows="2" placeholder="Optional notes..."></textarea></div>
+  </div>
+  <div style="margin-top:16px;display:flex;gap:8px;">
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Transaction</button>
+    <a href="{% url 'materials:transactions' %}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+</div></div>
+{% endblock %}

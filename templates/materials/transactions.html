@@ -1,0 +1,41 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Transactions | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1 class="page-title">Material Transactions</h1></div>
+  <a href="{% url 'materials:add_transaction' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Transaction</a>
+</div>
+<div class="card mb-3"><div class="card-body" style="padding:14px;">
+  <form method="get" class="row g-2">
+    <div class="col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search material..."></div>
+    <div class="col-md-3"><select name="type" class="form-select"><option value="">All Types</option>{% for val, label in type_choices %}<option value="{{ val }}" {% if txn_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-auto"><button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i></button></div>
+    {% if q or txn_type %}<div class="col-auto"><a href="{% url 'materials:transactions' %}" class="btn btn-outline-secondary"><i class="fas fa-times"></i></a></div>{% endif %}
+  </form>
+</div></div>
+{% if transactions %}
+<div class="table-wrapper">
+  <div class="table-responsive-custom">
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Material</th><th>Type</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Project</th><th>Supplier</th></tr></thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td>{{ t.date|date:"d M Y" }}</td>
+          <td style="font-weight:600;font-size:13px;">{{ t.material.name }}</td>
+          <td><span class="badge badge-{% if t.transaction_type == 'purchase' %}active{% elif t.transaction_type == 'usage' %}in-progress{% elif t.transaction_type == 'damage' %}inactive{% else %}planning{% endif %}">{{ t.get_transaction_type_display }}</span></td>
+          <td>{{ t.quantity }} {{ t.material.get_unit_display }}</td>
+          <td>{% if t.unit_price %}₹{{ t.unit_price|intcomma }}{% else %}—{% endif %}</td>
+          <td style="font-weight:600;">{% if t.total_amount %}₹{{ t.total_amount|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
+          <td style="font-size:12px;">{{ t.project.name|default:'—'|truncatechars:15 }}</td>
+          <td style="font-size:12px;">{{ t.supplier.name|default:'—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card"><div class="empty-state"><i class="fas fa-exchange-alt empty-state-icon"></i><h3 class="empty-state-title">No transactions yet</h3><a href="{% url 'materials:add_transaction' %}" class="btn btn-primary mt-2">Add Transaction</a></div></div>
+{% endif %}
+{% endblock %}

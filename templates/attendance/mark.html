@@ -1,0 +1,84 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Mark Attendance | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><div class="breadcrumb-custom"><a href="{% url 'attendance:list' %}">Attendance</a> / Mark</div><h1 class="page-title">Mark Attendance</h1></div>
+  <a href="{% url 'attendance:list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<!-- Step 1: Select Project -->
+<div class="card mb-4">
+  <div class="card-header"><h2 class="card-title"><i class="fas fa-building" style="color:#1a6fc4;margin-right:8px;"></i>Select Project</h2></div>
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">Project</label>
+        <select name="project" class="form-select" required>
+          <option value="">-- Select Project --</option>
+          {% for p in projects %}<option value="{{ p.pk }}" {% if selected_project == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2"><button type="submit" class="btn btn-primary"><i class="fas fa-users"></i> Load Workers</button></div>
+    </form>
+  </div>
+</div>
+
+{% if selected_project and employees %}
+<form method="post" action="{% url 'attendance:mark' %}">
+  {% csrf_token %}
+  <input type="hidden" name="project" value="{{ selected_project }}">
+  <input type="hidden" name="date" value="{{ today }}">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title"><i class="fas fa-clipboard-check" style="color:#22c55e;margin-right:8px;"></i>Mark Attendance — {{ today }}</h2>
+      <div style="display:flex;gap:8px;">
+        <button type="button" onclick="markAll('present')" class="btn btn-outline-secondary btn-sm" style="color:#22c55e;"><i class="fas fa-check-circle"></i> All Present</button>
+        <button type="button" onclick="markAll('absent')" class="btn btn-outline-secondary btn-sm" style="color:#ef4444;"><i class="fas fa-times-circle"></i> All Absent</button>
+      </div>
+    </div>
+    <div class="table-responsive-custom">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Worker Name</th><th>Type</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Remarks</th></tr></thead>
+        <tbody>
+          {% for emp in employees %}
+          <input type="hidden" name="employee_ids" value="{{ emp.pk }}">
+          <tr>
+            <td style="font-size:12px;color:#94a3b8;">{{ forloop.counter }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="user-avatar" style="width:32px;height:32px;font-size:11px;background:#e8f0fe;color:#1a6fc4;flex-shrink:0;">{{ emp.initials }}</div>
+                <div><div style="font-size:13px;font-weight:600;">{{ emp.full_name }}</div><div style="font-size:11px;color:#94a3b8;">{{ emp.employee_id }}</div></div>
+              </div>
+            </td>
+            <td style="font-size:12px;">{{ emp.get_employee_type_display }}</td>
+            <td>
+              <select name="statuses" class="form-select status-select" style="min-width:110px;">
+                {% for val, label in status_choices %}<option value="{{ val }}" {% if emp.today_att.status == val %}selected{% elif val == 'present' and not emp.today_att %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </td>
+            <td><input type="time" name="check_ins" class="form-control" value="{{ emp.today_att.check_in|default:'' }}" style="min-width:110px;"></td>
+            <td><input type="time" name="check_outs" class="form-control" value="{{ emp.today_att.check_out|default:'' }}" style="min-width:110px;"></td>
+            <td><input type="text" name="remarks" class="form-control" value="{{ emp.today_att.remarks|default:'' }}" placeholder="Optional..." style="min-width:130px;"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer" style="display:flex;justify-content:flex-end;gap:8px;">
+      <a href="{% url 'attendance:list' %}" class="btn btn-outline-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Attendance ({{ employees|length }} workers)</button>
+    </div>
+  </div>
+</form>
+{% elif selected_project and not employees %}
+<div class="card"><div class="empty-state"><i class="fas fa-users empty-state-icon"></i><h3 class="empty-state-title">No active workers</h3><p class="empty-state-text">No active workers are assigned to this project.</p><a href="{% url 'employees:add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Workers</a></div></div>
+{% endif %}
+
+{% endblock %}
+{% block extra_js %}
+<script>
+function markAll(status) {
+  document.querySelectorAll('.status-select').forEach(function(s){ s.value = status; });
+}
+</script>
+{% endblock %}

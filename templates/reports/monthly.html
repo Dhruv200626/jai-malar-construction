@@ -1,0 +1,48 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Monthly Reports | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1 class="page-title">Monthly Reports</h1></div></div>
+
+<div class="card mb-4"><div class="card-body" style="padding:16px;">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-6 col-md-3"><label class="form-label" style="font-size:12px;">Month</label>
+      <select name="month" class="form-select">{% for num, name in months %}<option value="{{ num }}" {% if month == num %}selected{% endif %}>{{ name }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-6 col-md-2"><label class="form-label" style="font-size:12px;">Year</label>
+      <select name="year" class="form-select">{% for y in years %}<option value="{{ y }}" {% if year == y %}selected{% endif %}>{{ y }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-md-4"><label class="form-label" style="font-size:12px;">Project</label>
+      <select name="project" class="form-select"><option value="">-- Select Project --</option>{% for p in projects %}<option value="{{ p.pk }}" {% if project_id == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-auto"><button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Generate</button></div>
+  </form>
+</div></div>
+
+{% if report_data %}
+<div style="background:linear-gradient(135deg,#1a6fc4,#0f2744);border-radius:16px;padding:24px;margin-bottom:24px;color:white;">
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;">{{ report_data.project.name }}</h2>
+  <p style="font-size:13px;opacity:.8;margin-bottom:0;">{{ month_name }} {{ year }} — Monthly Summary</p>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="kpi-card blue"><div class="kpi-icon blue"><i class="fas fa-user-hard-hat"></i></div><div class="kpi-value">{{ report_data.man_days|floatformat:1 }}</div><div class="kpi-label">Man Days</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card orange"><div class="kpi-icon orange"><i class="fas fa-hard-hat"></i></div><div class="kpi-value" style="font-size:18px;">₹{{ report_data.labour_cost|floatformat:0|intcomma }}</div><div class="kpi-label">Labour Cost</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card purple"><div class="kpi-icon purple"><i class="fas fa-boxes"></i></div><div class="kpi-value" style="font-size:18px;">₹{{ report_data.material_cost|floatformat:0|intcomma }}</div><div class="kpi-label">Material Cost</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card green"><div class="kpi-icon green"><i class="fas fa-rupee-sign"></i></div><div class="kpi-value" style="font-size:18px;">₹{{ report_data.total_cost|floatformat:0|intcomma }}</div><div class="kpi-label">Total Cost</div></div></div>
+</div>
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Cost Breakdown</h2></div>
+  <div class="card-body">
+    {% for label, amount in report_data.cost_breakdown.items %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9;">
+      <span style="font-size:14px;color:#64748b;">{{ label }}</span>
+      <span style="font-size:15px;font-weight:700;color:#1e293b;">₹{{ amount|floatformat:0|intcomma }}</span>
+    </div>
+    {% empty %}<p style="color:#94a3b8;text-align:center;padding:20px;">No approved expenses this month.</p>{% endfor %}
+  </div>
+</div>
+{% elif project_id %}
+<div class="card"><div class="empty-state"><i class="fas fa-calendar-times empty-state-icon"></i><h3 class="empty-state-title">No data for {{ month_name }} {{ year }}</h3><p class="empty-state-text">No approved expenses found for this period.</p></div></div>
+{% else %}
+<div class="card"><div class="empty-state"><i class="fas fa-calendar-alt empty-state-icon"></i><h3 class="empty-state-title">Select a project to generate report</h3><p class="empty-state-text">Choose a month, year, and project above.</p></div></div>
+{% endif %}
+{% endblock %}

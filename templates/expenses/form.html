@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1 class="page-title">{{ page_title }}</h1></div><a href="{% url 'expenses:list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a></div>
+<div class="card" style="max-width:650px;"><div class="card-body">
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label">Category *</label><select name="category" class="form-select" required>{% for val, label in categories %}<option value="{{ val }}" {% if exp.category == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label">Amount (₹) *</label><input type="number" name="amount" class="form-control" step="0.01" min="0" value="{{ exp.amount|default:'' }}" required></div>
+    <div class="col-md-6"><label class="form-label">Date *</label><input type="date" name="date" class="form-control" value="{{ exp.date|date:'Y-m-d'|default:today }}" required></div>
+    <div class="col-md-6"><label class="form-label">Payment Method</label><select name="payment_method" class="form-select">{% for val, label in payment_choices %}<option value="{{ val }}" {% if exp.payment_method == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label">Project</label><select name="project" class="form-select"><option value="">-- No Project --</option>{% for p in projects %}<option value="{{ p.pk }}" {% if exp.project_id == p.pk %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label">Vendor / Payee</label><input type="text" name="vendor" class="form-control" value="{{ exp.vendor|default:'' }}" placeholder="Vendor name"></div>
+    <div class="col-12"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2">{{ exp.description|default:'' }}</textarea></div>
+    <div class="col-12"><label class="form-label">Receipt (optional)</label><input type="file" name="receipt" class="form-control" accept="image/*,.pdf"></div>
+  </div>
+  <div style="margin-top:16px;display:flex;gap:8px;">
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Expense</button>
+    <a href="{% url 'expenses:list' %}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+</div></div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}{{ page_title }} | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom"><a href="{% url 'employees:list' %}">Workers</a> / {{ page_title }}</div>
+    <h1 class="page-title">{{ page_title }}</h1>
+  </div>
+  <a href="{% url 'employees:list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header"><h2 class="card-title">Personal Information</h2></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Full Name <span style="color:#ef4444">*</span></label>
+              <input type="text" name="full_name" class="form-control" placeholder="Worker's full name" value="{{ emp.full_name|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone <span style="color:#ef4444">*</span></label>
+              <input type="text" name="phone" class="form-control" placeholder="Mobile number" value="{{ emp.phone|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" placeholder="email@example.com" value="{{ emp.email|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" name="date_of_birth" class="form-control" value="{{ emp.date_of_birth|date:'Y-m-d'|default:'' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <textarea name="address" class="form-control" rows="2" placeholder="Full address">{{ emp.address|default:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Work Details</h2></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Worker Type <span style="color:#ef4444">*</span></label>
+              <select name="employee_type" class="form-select" required>
+                {% for val, label in type_choices %}<option value="{{ val }}" {% if emp.employee_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Department</label>
+              <select name="department" class="form-select">
+                {% for val, label in dept_choices %}<option value="{{ val }}" {% if emp.department == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Designation</label>
+              <input type="text" name="designation" class="form-control" placeholder="e.g. Senior Mason" value="{{ emp.designation|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Joining Date <span style="color:#ef4444">*</span></label>
+              <input type="date" name="joining_date" class="form-control" value="{{ emp.joining_date|date:'Y-m-d'|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Salary / Daily Wage (₹)</label>
+              <input type="number" name="salary" class="form-control" placeholder="0.00" step="0.01" min="0" value="{{ emp.salary|default:'0' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select">
+                {% for val, label in status_choices %}<option value="{{ val }}" {% if emp.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Assigned Project</label>
+              <select name="assigned_project" class="form-select">
+                <option value="">-- No Project --</option>
+                {% for p in projects %}<option value="{{ p.pk }}" {% if emp.assigned_project_id == p.pk %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes</label>
+              <textarea name="notes" class="form-control" rows="2" placeholder="Any additional notes...">{{ emp.notes|default:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header"><h2 class="card-title">Photo</h2></div>
+        <div class="card-body" style="text-align:center;">
+          {% if emp.profile_photo %}
+            <img src="{{ emp.profile_photo.url }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid #e8f0fe;">
+          {% else %}
+            <div class="user-avatar" style="width:80px;height:80px;font-size:24px;background:#e8f0fe;color:#1a6fc4;margin:0 auto 12px;">{{ emp.initials|default:'?' }}</div>
+          {% endif %}
+          <input type="file" name="profile_photo" class="form-control" accept="image/*">
+          <p style="font-size:11px;color:#94a3b8;margin-top:6px;">JPG, PNG up to 5MB</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {% if emp %}Update{% else %}Add{% endif %} Worker</button>
+        <a href="{% url 'employees:list' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

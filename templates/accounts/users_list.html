@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Users | Jai Malhar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom"><a href="{% url 'dashboard:index' %}">Dashboard</a> / Users</div>
+    <h1 class="page-title">User Management</h1>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'accounts:user_create' %}" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Add User
+    </a>
+  </div>
+</div>
+
+<div class="table-wrapper">
+  <div class="table-header">
+    <h2 class="card-title">All Users</h2>
+  </div>
+  <div class="table-responsive-custom">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">
+                {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+              </div>
+              {{ u.full_name }}
+            </div>
+          </td>
+          <td>{{ u.email }}</td>
+          <td>{% if u.role %}<span class="badge badge-in-progress">{{ u.role }}</span>{% else %}-{% endif %}</td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge badge-active">Active</span>
+            {% else %}
+              <span class="badge badge-inactive">Inactive</span>
+            {% endif %}
+          </td>
+          <td>{{ u.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">No users found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

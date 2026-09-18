@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Workers | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom"><a href="{% url 'dashboard:index' %}">Dashboard</a> / Workers</div>
+    <h1 class="page-title">Workers & Employees</h1>
+    <p class="page-subtitle">{{ total }} total &bull; {{ active }} active</p>
+  </div>
+  <a href="{% url 'employees:add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Worker</a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+  <div class="card-body" style="padding:16px;">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <div style="position:relative;">
+          <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
+          <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search name, phone, ID..." style="padding-left:32px;">
+        </div>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="type" class="form-select">
+          <option value="">All Types</option>
+          {% for val, label in type_choices %}<option value="{{ val }}" {% if emp_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All Status</option>
+          {% for val, label in status_choices %}<option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="project" class="form-select">
+          <option value="">All Projects</option>
+          {% for p in projects %}<option value="{{ p.pk }}" {% if request.GET.project == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name|truncatechars:20 }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-1"><button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i></button></div>
+      {% if q or status or emp_type %}<div class="col-6 col-md-1"><a href="{% url 'employees:list' %}" class="btn btn-outline-secondary w-100"><i class="fas fa-times"></i></a></div>{% endif %}
+    </form>
+  </div>
+</div>
+
+{% if employees %}
+<div class="table-wrapper">
+  <div class="table-responsive-custom">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Worker</th>
+          <th>Type / Dept</th>
+          <th>Phone</th>
+          <th>Project</th>
+          <th>Salary</th>
+          <th>Status</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for emp in employees %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              {% if emp.profile_photo %}
+                <img src="{{ emp.profile_photo.url }}" class="avatar-sm" style="border-radius:50%;width:36px;height:36px;object-fit:cover;flex-shrink:0;">
+              {% else %}
+                <div class="user-avatar" style="width:36px;height:36px;font-size:13px;background:#e8f0fe;color:#1a6fc4;flex-shrink:0;">{{ emp.initials }}</div>
+              {% endif %}
+              <div>
+                <div style="font-weight:600;font-size:14px;">{{ emp.full_name }}</div>
+                <div style="font-size:11px;color:#94a3b8;">{{ emp.employee_id }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="font-size:13px;">{{ emp.get_employee_type_display }}</div>
+            <div style="font-size:11px;color:#94a3b8;">{{ emp.get_department_display }}</div>
+          </td>
+          <td style="font-size:13px;">{{ emp.phone }}</td>
+          <td style="font-size:13px;">{{ emp.assigned_project.name|default:'—'|truncatechars:20 }}</td>
+          <td style="font-size:13px;font-weight:500;">₹{{ emp.salary|intcomma }}</td>
+          <td><span class="badge badge-{{ emp.status|lower }}">{{ emp.get_status_display }}</span></td>
+          <td>
+            <div class="actions">
+              <a href="{% url 'employees:detail' emp.pk %}" class="btn btn-outline-secondary btn-sm btn-icon" title="View"><i class="fas fa-eye"></i></a>
+              <a href="{% url 'employees:edit' emp.pk %}" class="btn btn-outline-secondary btn-sm btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
+              <form method="post" action="{% url 'employees:delete' emp.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-secondary btn-sm btn-icon" style="color:#ef4444;" title="Delete" onclick="return confirm('Remove {{ emp.full_name }}?')"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- Pagination -->
+  {% if employees.has_other_pages %}
+  <div class="table-footer">
+    <span class="table-info-text">Showing {{ employees.start_index }}–{{ employees.end_index }} of {{ employees.paginator.count }}</span>
+    <div class="pagination-custom">
+      {% if employees.has_previous %}<a href="?page={{ employees.previous_page_number }}&q={{ q }}&status={{ status }}&type={{ emp_type }}" class="page-link-custom"><i class="fas fa-chevron-left"></i></a>{% endif %}
+      {% for num in employees.paginator.page_range %}<a href="?page={{ num }}&q={{ q }}&status={{ status }}&type={{ emp_type }}" class="page-link-custom {% if employees.number == num %}active{% endif %}">{{ num }}</a>{% endfor %}
+      {% if employees.has_next %}<a href="?page={{ employees.next_page_number }}&q={{ q }}&status={{ status }}&type={{ emp_type }}" class="page-link-custom"><i class="fas fa-chevron-right"></i></a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<div class="card"><div class="empty-state">
+  <i class="fas fa-users empty-state-icon"></i>
+  <h3 class="empty-state-title">No workers found</h3>
+  <p class="empty-state-text">{% if q or status %}Try adjusting filters.{% else %}Start by adding your first worker.{% endif %}</p>
+  <a href="{% url 'employees:add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Worker</a>
+</div></div>
+{% endif %}
+{% endblock %}

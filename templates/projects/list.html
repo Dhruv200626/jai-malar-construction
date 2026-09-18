@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Projects | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom"><a href="{% url 'dashboard:index' %}">Dashboard</a> / Projects</div>
+    <h1 class="page-title">Projects</h1>
+    <p class="page-subtitle">Manage all construction projects</p>
+  </div>
+  <a href="{% url 'projects:add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Project</a>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="kpi-card blue"><div class="kpi-icon blue"><i class="fas fa-building"></i></div><div class="kpi-value">{{ counts.all }}</div><div class="kpi-label">Total</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card green"><div class="kpi-icon green"><i class="fas fa-hammer"></i></div><div class="kpi-value">{{ counts.active }}</div><div class="kpi-label">Active</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card teal"><div class="kpi-icon teal"><i class="fas fa-check-circle"></i></div><div class="kpi-value">{{ counts.completed }}</div><div class="kpi-label">Completed</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card orange"><div class="kpi-icon orange"><i class="fas fa-clock"></i></div><div class="kpi-value">{{ counts.upcoming }}</div><div class="kpi-label">Upcoming</div></div></div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+  <div class="card-body" style="padding:16px;">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-12 col-md-5">
+        <div style="position:relative;">
+          <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
+          <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search projects..." style="padding-left:32px;">
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <select name="status" class="form-select">
+          <option value="">All Status</option>
+          {% for val, label in status_choices %}<option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Filter</button>
+      </div>
+      {% if q or status %}
+      <div class="col-6 col-md-2">
+        <a href="{% url 'projects:list' %}" class="btn btn-outline-secondary w-100">Clear</a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Project Cards -->
+{% if projects %}
+<div class="row g-3">
+  {% for p in projects %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card h-100" style="transition:all .2s;">
+      <!-- Image -->
+      <div style="height:160px;background:linear-gradient(135deg,#1a6fc4,#0f2744);border-radius:12px 12px 0 0;overflow:hidden;position:relative;">
+        {% if p.image %}<img src="{{ p.image.url }}" style="width:100%;height:100%;object-fit:cover;" alt="{{ p.name }}">{% else %}
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="fas fa-building" style="font-size:48px;color:rgba(255,255,255,.3);"></i></div>{% endif %}
+        <div style="position:absolute;top:12px;right:12px;">
+          <span class="badge badge-{{ p.status|lower }}">{{ p.get_status_display }}</span>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:12px 16px;">
+          <div style="font-size:11px;color:rgba(255,255,255,.8);"><i class="fas fa-map-marker-alt" style="margin-right:4px;"></i>{{ p.location }}</div>
+        </div>
+      </div>
+      <div class="card-body" style="padding:16px;">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:4px;color:#1e293b;">{{ p.name }}</h3>
+        <p style="font-size:12px;color:#64748b;margin-bottom:12px;">{{ p.client|default:"No client" }} &bull; {{ p.get_project_type_display }}</p>
+        <!-- Progress -->
+        <div class="progress-label"><span style="font-size:12px;color:#64748b;">Progress</span><span style="font-size:12px;font-weight:600;">{{ p.progress }}%</span></div>
+        <div class="progress-custom mb-3"><div class="progress-bar-custom {% if p.progress >= 80 %}green{% elif p.progress >= 40 %}blue{% else %}orange{% endif %}" style="width:{{ p.progress }}%;"></div></div>
+        <!-- Budget -->
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:4px;">
+          <span><i class="fas fa-rupee-sign" style="margin-right:2px;"></i>Budget</span>
+          <span style="font-weight:600;color:#1e293b;">₹{{ p.budget|intcomma }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;">
+          <span><i class="fas fa-calendar" style="margin-right:2px;"></i>{{ p.start_date|date:"d M Y" }}</span>
+          <span>{{ p.expected_end_date|date:"d M Y" }}</span>
+        </div>
+      </div>
+      <div class="card-footer" style="display:flex;gap:8px;padding:12px 16px;">
+        <a href="{% url 'projects:detail' p.pk %}" class="btn btn-primary btn-sm" style="flex:1;">View</a>
+        <a href="{% url 'projects:edit' p.pk %}" class="btn btn-outline-secondary btn-sm btn-icon"><i class="fas fa-edit"></i></a>
+        <form method="post" action="{% url 'projects:delete' p.pk %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-secondary btn-sm btn-icon" style="color:#ef4444;" onclick="return confirm('Delete project {{ p.name }}?')"><i class="fas fa-trash"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if projects.has_other_pages %}
+<div style="display:flex;justify-content:center;margin-top:24px;">
+  <div class="pagination-custom">
+    {% if projects.has_previous %}<a href="?page={{ projects.previous_page_number }}&q={{ q }}&status={{ status }}" class="page-link-custom"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for num in projects.paginator.page_range %}
+      <a href="?page={{ num }}&q={{ q }}&status={{ status }}" class="page-link-custom {% if projects.number == num %}active{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if projects.has_next %}<a href="?page={{ projects.next_page_number }}&q={{ q }}&status={{ status }}" class="page-link-custom"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="card"><div class="empty-state">
+  <i class="fas fa-building empty-state-icon"></i>
+  <h3 class="empty-state-title">No projects found</h3>
+  <p class="empty-state-text">{% if q or status %}Try adjusting your filters.{% else %}Get started by adding your first project.{% endif %}</p>
+  <a href="{% url 'projects:add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Project</a>
+</div></div>
+{% endif %}
+{% endblock %}
