@@ -49,6 +49,10 @@
       <a href="{% url 'reports:daily' %}" class="sidebar-item"><i class="fas fa-file-alt"></i><span>Daily Reports</span></a>
       <a href="{% url 'reports:monthly' %}" class="sidebar-item"><i class="fas fa-calendar-alt"></i><span>Monthly Reports</span></a>
 
+      <span class="sidebar-section-label">Billing</span>
+      <a href="{% url 'billing:list' %}" class="sidebar-item"><i class="fas fa-file-invoice"></i><span>Bills &amp; Invoices</span></a>
+      <a href="{% url 'billing:create' %}" class="sidebar-item"><i class="fas fa-plus-circle"></i><span>New Bill</span></a>
+
       {% if user.is_admin %}
       <span class="sidebar-section-label">System</span>
       <a href="{% url 'accounts:users_list' %}" class="sidebar-item"><i class="fas fa-user-cog"></i><span>Users</span></a>
@@ -136,6 +140,7 @@
       <a href="{% url 'reports:daily' %}" class="quick-action-item"><i class="fas fa-file-alt" style="color:#8b5cf6;"></i><span>Daily Report</span></a>
       <a href="{% url 'employees:add' %}" class="quick-action-item"><i class="fas fa-user-plus" style="color:#14b8a6;"></i><span>Add Employee</span></a>
       <a href="{% url 'projects:add' %}" class="quick-action-item"><i class="fas fa-plus-circle" style="color:#f59e0b;"></i><span>Add Project</span></a>
+      <a href="{% url 'billing:create' %}" class="quick-action-item"><i class="fas fa-file-invoice" style="color:#1a6fc4;"></i><span>New Bill</span></a>
     </div>
   </div>
 
