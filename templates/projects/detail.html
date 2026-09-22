@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}{{ project.name }} | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom"><a href="{% url 'projects:list' %}">Projects</a> / {{ project.name }}</div>
+    <h1 class="page-title">{{ project.name }}</h1>
+    <p class="page-subtitle"><i class="fas fa-map-marker-alt" style="margin-right:4px;color:#94a3b8;"></i>{{ project.location }}</p>
+  </div>
+  <div class="page-actions">
+    <span class="badge badge-{{ project.status|lower }}">{{ project.get_status_display }}</span>
+    <a href="{% url 'projects:edit' project.pk %}" class="btn btn-outline-secondary"><i class="fas fa-edit"></i> Edit</a>
+    <a href="{% url 'projects:list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+  </div>
+</div>
+
+<!-- Progress Banner -->
+<div class="card mb-4" style="background:linear-gradient(135deg,#1a6fc4,#0f2744);color:white;border:none;">
+  <div class="card-body" style="padding:24px;">
+    <div class="row align-items-center g-3">
+      <div class="col-md-3 text-center">
+        <div style="font-size:13px;opacity:.8;margin-bottom:4px;">Budget</div>
+        <div style="font-size:22px;font-weight:700;">₹{{ project.budget|intcomma }}</div>
+      </div>
+      <div class="col-md-3 text-center">
+        <div style="font-size:13px;opacity:.8;margin-bottom:4px;">Spent</div>
+        <div style="font-size:22px;font-weight:700;">₹{{ project.actual_cost|intcomma }}</div>
+      </div>
+      <div class="col-md-3 text-center">
+        <div style="font-size:13px;opacity:.8;margin-bottom:4px;">Remaining</div>
+        <div style="font-size:22px;font-weight:700;">₹{{ project.remaining_budget|intcomma }}</div>
+      </div>
+      <div class="col-md-3">
+        <div style="font-size:13px;opacity:.8;margin-bottom:8px;">Progress: {{ project.progress }}%</div>
+        <div style="height:8px;background:rgba(255,255,255,.2);border-radius:4px;"><div style="height:100%;border-radius:4px;background:white;width:{{ project.progress }}%;"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4" id="projectTabs">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#overview">Overview</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#workers">Workers ({{ workers|length }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#expenses">Expenses</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#materials">Materials</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#reports">Daily Reports</a></li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- Overview Tab -->
+  <div class="tab-pane fade show active" id="overview">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header"><h2 class="card-title">Project Details</h2></div>
+          <div class="card-body">
+            {% include 'includes/detail_row.html' with label='Client' value=project.client|default:'Not assigned' %}
+            {% include 'includes/detail_row.html' with label='Type' value=project.get_project_type_display %}
+            {% include 'includes/detail_row.html' with label='Manager' value=project.project_manager.get_full_name|default:'Not assigned' %}
+            {% include 'includes/detail_row.html' with label='Start Date' value=project.start_date %}
+            {% include 'includes/detail_row.html' with label='Expected End' value=project.expected_end_date %}
+            {% if project.actual_end_date %}{% include 'includes/detail_row.html' with label='Actual End' value=project.actual_end_date %}{% endif %}
+            {% if project.description %}
+            <div style="padding:10px 0;border-bottom:1px solid #f1f5f9;">
+              <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">Description</div>
+              <div style="font-size:14px;color:#1e293b;">{{ project.description }}</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header"><h2 class="card-title">Cost Breakdown</h2></div>
+          <div class="card-body">
+            {% for cat, amount in cost_by_cat.items %}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+              <span style="font-size:13px;color:#64748b;">{{ cat|capfirst }}</span>
+              <span style="font-size:14px;font-weight:600;">₹{{ amount|floatformat:0|intcomma }}</span>
+            </div>
+            {% empty %}
+            <p style="color:#94a3b8;font-size:13px;text-align:center;padding:20px 0;">No expenses recorded yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workers Tab -->
+  <div class="tab-pane fade" id="workers">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Assigned Workers</h2>
+        <a href="{% url 'employees:add' %}?project={{ project.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Worker</a>
+      </div>
+      <div class="table-responsive-custom">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for w in workers %}
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px;">
+                <div class="user-avatar" style="width:32px;height:32px;font-size:12px;background:#e8f0fe;color:#1a6fc4;flex-shrink:0;">{{ w.initials }}</div>
+                {{ w.full_name }}
+              </div></td>
+              <td>{{ w.get_employee_type_display }}</td>
+              <td>{{ w.phone }}</td>
+              <td><span class="badge badge-{{ w.status|lower }}">{{ w.get_status_display }}</span></td>
+              <td><div class="actions">
+                <a href="{% url 'employees:detail' w.pk %}" class="btn btn-outline-secondary btn-sm btn-icon"><i class="fas fa-eye"></i></a>
+                <a href="{% url 'employees:edit' w.pk %}" class="btn btn-outline-secondary btn-sm btn-icon"><i class="fas fa-edit"></i></a>
+              </div></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:#94a3b8;">No workers assigned. <a href="{% url 'employees:add' %}">Add workers</a>.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expenses Tab -->
+  <div class="tab-pane fade" id="expenses">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Project Expenses</h2>
+        <a href="{% url 'expenses:add' %}?project={{ project.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Expense</a>
+      </div>
+      <div class="table-responsive-custom">
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Category</th><th>Vendor</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for e in expenses %}
+            <tr>
+              <td>{{ e.date|date:"d M Y" }}</td>
+              <td>{{ e.get_category_display }}</td>
+              <td>{{ e.vendor|default:'-' }}</td>
+              <td style="font-weight:600;">₹{{ e.amount|intcomma }}</td>
+              <td><span class="badge badge-{{ e.approval_status }}">{{ e.get_approval_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:#94a3b8;">No expenses recorded.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Materials Tab -->
+  <div class="tab-pane fade" id="materials">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Materials Used</h2>
+        <a href="{% url 'materials:add_transaction' %}?project={{ project.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Material</a>
+      </div>
+      <div class="table-responsive-custom">
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Material</th><th>Type</th><th>Quantity</th><th>Amount</th></tr></thead>
+          <tbody>
+            {% for t in material_txns %}
+            <tr>
+              <td>{{ t.date|date:"d M Y" }}</td>
+              <td>{{ t.material.name }}</td>
+              <td><span class="badge badge-in-progress">{{ t.get_transaction_type_display }}</span></td>
+              <td>{{ t.quantity }} {{ t.material.get_unit_display }}</td>
+              <td>₹{{ t.total_amount|intcomma }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:#94a3b8;">No material transactions.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reports Tab -->
+  <div class="tab-pane fade" id="reports">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Daily Reports</h2>
+        <a href="{% url 'reports:daily_add' %}?project={{ project.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Report</a>
+      </div>
+      <div class="table-responsive-custom">
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Weather</th><th>Workers Present</th><th>Submitted By</th></tr></thead>
+          <tbody>
+            {% for r in daily_reports %}
+            <tr>
+              <td>{{ r.report_date|date:"d M Y" }}</td>
+              <td>{{ r.get_weather_display }}</td>
+              <td>{{ r.present_workers }}/{{ r.total_workers }}</td>
+              <td>{{ r.submitted_by.get_full_name|default:'-' }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;padding:32px;color:#94a3b8;">No reports yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

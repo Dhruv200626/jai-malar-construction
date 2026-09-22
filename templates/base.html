@@ -1,0 +1,249 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jai Malhar - Construction Site Management System">
+  <meta name="theme-color" content="#1a6fc4">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Jai Malhar">
+  <meta name="msapplication-TileColor" content="#1a6fc4">
+  <meta name="msapplication-TileImage" content="{% static 'images/icons/icon-144x144.png' %}">
+  <title>{% block title %}Jai Malhar | Construction Management{% endblock %}</title>
+
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="apple-touch-icon" sizes="152x152" href="{% static 'images/icons/icon-152x152.png' %}">
+  <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/icons/icon-192x192.png' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'images/icons/icon-192x192.png' %}">
+  <link rel="icon" type="image/png" sizes="512x512" href="{% static 'images/icons/icon-512x512.png' %}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- PWA Install Banner -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a6fc4;color:#fff;border-radius:14px;padding:12px 20px;box-shadow:0 8px 24px rgba(0,0,0,.18);align-items:center;gap:14px;min-width:280px;max-width:360px;">
+  <div style="display:flex;align-items:center;gap:10px;flex:1;">
+    <img src="{% static 'images/icons/icon-72x72.png' %}" width="36" height="36" style="border-radius:8px;" alt="icon">
+    <div>
+      <div style="font-weight:700;font-size:13px;">Install Jai Malhar</div>
+      <div style="font-size:11px;opacity:.85;">Add to home screen for quick access</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button onclick="installPWA()" style="background:#fff;color:#1a6fc4;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;">Install</button>
+    <button onclick="document.getElementById('pwaInstallBanner').style.display='none'" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;"><i class="fas fa-times"></i></button>
+  </div>
+</div>
+
+{% if user.is_authenticated %}
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main Navigation">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon"><i class="fas fa-hard-hat"></i></div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">Jai Malhar</span>
+        <span class="sidebar-brand-tagline">Construction Management</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="sidebar-section-label">Main</span>
+      <a href="{% url 'dashboard:index' %}" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+      <a href="{% url 'projects:list' %}" class="sidebar-item"><i class="fas fa-building"></i><span>Projects</span></a>
+      <a href="{% url 'employees:list' %}" class="sidebar-item"><i class="fas fa-users"></i><span>Employees</span></a>
+      <a href="{% url 'attendance:list' %}" class="sidebar-item"><i class="fas fa-clipboard-check"></i><span>Attendance</span></a>
+
+      <span class="sidebar-section-label">Operations</span>
+      <a href="{% url 'materials:list' %}" class="sidebar-item"><i class="fas fa-boxes"></i><span>Materials</span></a>
+      <a href="{% url 'expenses:list' %}" class="sidebar-item"><i class="fas fa-rupee-sign"></i><span>Expenses</span></a>
+      <a href="{% url 'equipment:list' %}" class="sidebar-item"><i class="fas fa-truck"></i><span>Equipment</span></a>
+      <a href="{% url 'suppliers:list' %}" class="sidebar-item"><i class="fas fa-store"></i><span>Suppliers</span></a>
+      <a href="{% url 'clients:list' %}" class="sidebar-item"><i class="fas fa-briefcase"></i><span>Clients</span></a>
+
+      <span class="sidebar-section-label">Reports</span>
+      <a href="{% url 'reports:daily' %}" class="sidebar-item"><i class="fas fa-file-alt"></i><span>Daily Reports</span></a>
+      <a href="{% url 'reports:monthly' %}" class="sidebar-item"><i class="fas fa-calendar-alt"></i><span>Monthly Reports</span></a>
+
+      <span class="sidebar-section-label">Billing</span>
+      <a href="{% url 'billing:list' %}" class="sidebar-item"><i class="fas fa-file-invoice"></i><span>Bills &amp; Invoices</span></a>
+      <a href="{% url 'billing:create' %}" class="sidebar-item"><i class="fas fa-plus-circle"></i><span>New Bill</span></a>
+
+      {% if user.is_admin %}
+      <span class="sidebar-section-label">System</span>
+      <a href="{% url 'accounts:users_list' %}" class="sidebar-item"><i class="fas fa-user-cog"></i><span>Users</span></a>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'accounts:profile' %}" class="sidebar-item"><i class="fas fa-user-circle"></i><span>{{ user.full_name|truncatechars:20 }}</span></a>
+      <a href="{% url 'accounts:logout' %}" class="sidebar-item" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+    </div>
+  </aside>
+
+  <div class="main-wrapper" id="mainWrapper">
+
+    <header class="top-header" role="banner">
+      <div class="header-left">
+        <button class="btn-menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-container" style="position:relative;">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="search-input" id="globalSearch" placeholder="Search projects, employees..." autocomplete="off" aria-label="Global search">
+          <div id="searchResults" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,.08);z-index:1000;margin-top:4px;"></div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div style="position:relative;">
+          <button class="user-avatar" id="userMenuBtn" aria-label="User menu">
+            {% if user.profile_photo %}<img src="{{ user.profile_photo.url }}" alt="{{ user.full_name }}">{% else %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% endif %}
+          </button>
+          <div id="userDropdown" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:200px;background:white;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.10);z-index:1000;overflow:hidden;">
+            <div style="padding:12px 16px;border-bottom:1px solid #e2e8f0;">
+              <div style="font-weight:600;font-size:13px;color:#1e293b;">{{ user.full_name }}</div>
+              <div style="font-size:11px;color:#94a3b8;">{{ user.role|default:"User" }}</div>
+            </div>
+            <a href="{% url 'accounts:profile' %}" style="display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#1e293b;text-decoration:none;"><i class="fas fa-user" style="color:#64748b;width:16px;"></i> My Profile</a>
+            <div style="border-top:1px solid #e2e8f0;margin:4px 0;"></div>
+            <a href="{% url 'accounts:logout' %}" style="display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#ef4444;text-decoration:none;"><i class="fas fa-sign-out-alt" style="width:16px;"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content" id="pageContent">
+      <div class="toast-container" id="toastContainer" aria-live="polite">
+        {% for message in messages %}
+          <div class="toast-item {{ message.tags }}">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle toast-icon success"></i>
+            {% elif message.tags == 'danger' or message.tags == 'error' %}<i class="fas fa-times-circle toast-icon danger"></i>
+            {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle toast-icon warning"></i>
+            {% else %}<i class="fas fa-info-circle toast-icon info"></i>{% endif %}
+            <span class="toast-body">{{ message }}</span>
+            <button class="toast-close" aria-label="Close"><i class="fas fa-times"></i></button>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% block content %}{% endblock %}
+    </main>
+
+  </div><!-- /.main-wrapper -->
+
+  <nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation">
+    <div class="mobile-nav-items">
+      <a href="{% url 'dashboard:index' %}" class="mobile-nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+      <a href="{% url 'reports:daily' %}" class="mobile-nav-item"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+      <div class="mobile-fab">
+        <button class="mobile-fab-btn" id="fabBtn" aria-label="Quick actions"><i class="fas fa-plus"></i></button>
+      </div>
+      <a href="{% url 'accounts:profile' %}" class="mobile-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+    </div>
+  </nav>
+
+  <div class="quick-actions-overlay" id="quickActionsOverlay"></div>
+  <div class="quick-actions-menu" id="quickActionsMenu" role="dialog" aria-modal="true">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 class="quick-actions-title" style="margin:0;font-size:15px;">Quick Actions</h2>
+      <button id="closeQuickActions" style="background:none;border:none;color:#64748b;font-size:18px;cursor:pointer;" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="quick-actions-grid">
+      <a href="{% url 'attendance:mark' %}" class="quick-action-item"><i class="fas fa-clipboard-check" style="color:#1a6fc4;"></i><span>Attendance</span></a>
+      <a href="{% url 'materials:transactions' %}" class="quick-action-item"><i class="fas fa-boxes" style="color:#f97316;"></i><span>Add Material</span></a>
+      <a href="{% url 'expenses:list' %}" class="quick-action-item"><i class="fas fa-rupee-sign" style="color:#22c55e;"></i><span>Add Expense</span></a>
+      <a href="{% url 'reports:daily' %}" class="quick-action-item"><i class="fas fa-file-alt" style="color:#8b5cf6;"></i><span>Daily Report</span></a>
+      <a href="{% url 'employees:add' %}" class="quick-action-item"><i class="fas fa-user-plus" style="color:#14b8a6;"></i><span>Add Employee</span></a>
+      <a href="{% url 'projects:add' %}" class="quick-action-item"><i class="fas fa-plus-circle" style="color:#f59e0b;"></i><span>Add Project</span></a>
+      <a href="{% url 'billing:create' %}" class="quick-action-item"><i class="fas fa-file-invoice" style="color:#1a6fc4;"></i><span>New Bill</span></a>
+    </div>
+  </div>
+
+{% else %}
+
+  <!-- Unauthenticated: toasts + page content only -->
+  <div class="toast-container" id="toastContainer" aria-live="polite">
+    {% for message in messages %}
+      <div class="toast-item {{ message.tags }}">
+        {% if message.tags == 'success' %}<i class="fas fa-check-circle toast-icon success"></i>
+        {% elif message.tags == 'danger' or message.tags == 'error' %}<i class="fas fa-times-circle toast-icon danger"></i>
+        {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle toast-icon warning"></i>
+        {% else %}<i class="fas fa-info-circle toast-icon info"></i>{% endif %}
+        <span class="toast-body">{{ message }}</span>
+        <button class="toast-close" aria-label="Close"><i class="fas fa-times"></i></button>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% block page_content %}{% endblock %}
+
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+
+<style>
+  #userDropdown.show { display: block !important; }
+</style>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(function (reg) {
+        console.log('SW registered:', reg.scope);
+        // Check for updates every 60s
+        setInterval(() => reg.update(), 60000);
+      })
+      .catch(function (err) {
+        console.log('SW registration failed:', err);
+      });
+  });
+}
+
+// PWA Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner if present
+  const banner = document.getElementById('pwaInstallBanner');
+  if (banner) banner.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', function () {
+  deferredPrompt = null;
+  const banner = document.getElementById('pwaInstallBanner');
+  if (banner) banner.style.display = 'none';
+});
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function (result) {
+      deferredPrompt = null;
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.style.display = 'none';
+    });
+  }
+}
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

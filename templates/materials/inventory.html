@@ -1,0 +1,47 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Inventory | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1 class="page-title">Material Inventory</h1></div>
+  <div class="page-actions">
+    <a href="{% url 'materials:add_transaction' %}" class="btn btn-outline-secondary"><i class="fas fa-plus"></i> Add Transaction</a>
+    <a href="{% url 'materials:list' %}" class="btn btn-outline-secondary"><i class="fas fa-list"></i> All Materials</a>
+  </div>
+</div>
+<div class="row g-3">
+{% for m in materials %}
+<div class="col-md-6 col-lg-4">
+  <div class="card">
+    <div class="card-body" style="padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <h3 style="font-size:15px;font-weight:700;color:#1e293b;">{{ m.name }}</h3>
+          <p style="font-size:12px;color:#64748b;">{{ m.get_category_display }}</p>
+        </div>
+        {% if m.is_low_stock %}<span class="badge badge-low-stock">LOW STOCK</span>{% else %}<span class="badge badge-active">OK</span>{% endif %}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;text-align:center;">
+        <div style="background:#f8fafc;border-radius:8px;padding:8px;">
+          <div style="font-size:18px;font-weight:700;color:#1a6fc4;">{{ m.current_stock }}</div>
+          <div style="font-size:10px;color:#94a3b8;">In Stock</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:8px;">
+          <div style="font-size:18px;font-weight:700;color:#f97316;">{{ m.minimum_stock }}</div>
+          <div style="font-size:10px;color:#94a3b8;">Min Stock</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:8px;">
+          <div style="font-size:14px;font-weight:700;color:#22c55e;">{{ m.get_unit_display }}</div>
+          <div style="font-size:10px;color:#94a3b8;">Unit</div>
+        </div>
+      </div>
+      <div class="progress-label"><span style="font-size:11px;">Usage</span><span style="font-size:11px;">{{ m.usage_percent }}%</span></div>
+      <div class="progress-custom"><div class="progress-bar-custom {% if m.usage_percent > 80 %}red{% elif m.usage_percent > 50 %}orange{% else %}green{% endif %}" style="width:{{ m.usage_percent }}%;"></div></div>
+      <div style="margin-top:10px;font-size:12px;color:#64748b;">Stock Value: <strong>₹{{ m.stock_value|floatformat:0|intcomma }}</strong></div>
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="col-12"><div class="card"><div class="empty-state"><i class="fas fa-warehouse empty-state-icon"></i><h3 class="empty-state-title">No materials</h3><a href="{% url 'materials:add' %}" class="btn btn-primary mt-2">Add Material</a></div></div></div>
+{% endfor %}
+</div>
+{% endblock %}

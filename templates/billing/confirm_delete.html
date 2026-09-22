@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Delete Bill | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom"><a href="{% url 'billing:list' %}">Bills</a> / Delete</div>
+    <h1 class="page-title">Delete Bill</h1>
+  </div>
+</div>
+<div class="card" style="max-width:480px;margin:0 auto;">
+  <div class="card-body" style="text-align:center;padding:40px 32px;">
+    <i class="fas fa-trash" style="font-size:48px;color:#ef4444;margin-bottom:16px;display:block;"></i>
+    <h2 style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:8px;">Delete {{ bill.invoice_number }}?</h2>
+    <p style="font-size:13px;color:#64748b;margin-bottom:24px;">
+      This will permanently delete this bill and all {{ bill.items.count }} item(s) for <strong>{{ bill.client }}</strong>. This cannot be undone.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <a href="{% url 'billing:detail' bill.pk %}" class="btn btn-outline-secondary" style="min-width:100px;">Cancel</a>
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary" style="background:#ef4444;border-color:#ef4444;min-width:120px;"><i class="fas fa-trash"></i> Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

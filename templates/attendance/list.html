@@ -1,0 +1,49 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Attendance | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><div class="breadcrumb-custom"><a href="{% url 'dashboard:index' %}">Dashboard</a> / Attendance</div><h1 class="page-title">Attendance</h1></div>
+  <a href="{% url 'attendance:mark' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Mark Attendance</a>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="kpi-card blue"><div class="kpi-icon blue"><i class="fas fa-users"></i></div><div class="kpi-value">{{ summary.total }}</div><div class="kpi-label">Total</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card green"><div class="kpi-icon green"><i class="fas fa-check"></i></div><div class="kpi-value">{{ summary.present }}</div><div class="kpi-label">Present</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card red"><div class="kpi-icon red"><i class="fas fa-times"></i></div><div class="kpi-value">{{ summary.absent }}</div><div class="kpi-label">Absent</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card orange"><div class="kpi-icon orange"><i class="fas fa-adjust"></i></div><div class="kpi-value">{{ summary.half_day }}</div><div class="kpi-label">Half Day</div></div></div>
+</div>
+<div class="card mb-4"><div class="card-body" style="padding:16px;">
+  <form method="get" class="row g-2">
+    <div class="col-6 col-md-3"><input type="date" name="date" value="{{ date_filter }}" class="form-control"></div>
+    <div class="col-6 col-md-3"><select name="project" class="form-select"><option value="">All Projects</option>{% for p in projects %}<option value="{{ p.pk }}" {% if project_id == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name|truncatechars:20 }}</option>{% endfor %}</select></div>
+    <div class="col-6 col-md-2"><select name="status" class="form-select"><option value="">All Status</option>{% for val, label in status_choices %}<option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-6 col-md-2"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Worker name..."></div>
+    <div class="col-3 col-md-1"><button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i></button></div>
+    <div class="col-3 col-md-1"><a href="{% url 'attendance:list' %}" class="btn btn-outline-secondary w-100"><i class="fas fa-times"></i></a></div>
+  </form>
+</div></div>
+{% if attendances %}
+<div class="table-wrapper">
+  <div class="table-responsive-custom">
+    <table class="data-table">
+      <thead><tr><th>Worker</th><th>Project</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Hours</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for a in attendances %}
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:8px;"><div class="user-avatar" style="width:32px;height:32px;font-size:11px;background:#e8f0fe;color:#1a6fc4;flex-shrink:0;">{{ a.employee.initials }}</div><div><div style="font-size:13px;font-weight:500;">{{ a.employee.full_name }}</div><div style="font-size:11px;color:#94a3b8;">{{ a.employee.get_employee_type_display }}</div></div></div></td>
+          <td style="font-size:12px;">{{ a.project.name|default:'—'|truncatechars:15 }}</td>
+          <td style="font-size:13px;">{{ a.date|date:"d M Y" }}</td>
+          <td style="font-size:13px;">{{ a.check_in|default:'—' }}</td>
+          <td style="font-size:13px;">{{ a.check_out|default:'—' }}</td>
+          <td style="font-weight:600;">{% if a.working_hours %}{{ a.working_hours }}h{% else %}—{% endif %}</td>
+          <td><span class="badge badge-{{ a.status|lower }}">{{ a.get_status_display }}</span></td>
+          <td><form method="post" action="{% url 'attendance:delete' a.pk %}" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm btn-icon" style="color:#ef4444;" onclick="return confirm('Delete?')"><i class="fas fa-trash"></i></button></form></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card"><div class="empty-state"><i class="fas fa-clipboard-check empty-state-icon"></i><h3 class="empty-state-title">No attendance for {{ date_filter }}</h3><a href="{% url 'attendance:mark' %}" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Mark Attendance</a></div></div>
+{% endif %}
+{% endblock %}

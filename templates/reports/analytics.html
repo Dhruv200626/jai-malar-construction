@@ -1,0 +1,62 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Analytics | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1 class="page-title">Analytics</h1><p class="page-subtitle">Live data from database</p></div></div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="kpi-card blue"><div class="kpi-icon blue"><i class="fas fa-building"></i></div><div class="kpi-value">{{ total_projects }}</div><div class="kpi-label">Total Projects</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card green"><div class="kpi-icon green"><i class="fas fa-hammer"></i></div><div class="kpi-value">{{ active_projects }}</div><div class="kpi-label">Active</div></div></div>
+  <div class="col-6 col-md-3"><div class="kpi-card orange"><div class="kpi-icon orange"><i class="fas fa-rupee-sign"></i></div><div class="kpi-value" style="font-size:16px;">₹{{ this_month_total|floatformat:0|intcomma }}</div><div class="kpi-label">This Month</div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title">Monthly Expenses (Last 6 Months)</h2></div>
+      <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="monthlyChart"></canvas></div></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title">Category Breakdown</h2></div>
+      <div class="card-body"><div class="chart-container" style="height:220px;"><canvas id="catChart"></canvas></div></div>
+    </div>
+  </div>
+</div>
+
+{% if project_names %}
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Project-wise Cost</h2></div>
+  <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="projectChart"></canvas></div></div>
+</div>
+{% endif %}
+
+{% endblock %}
+{% block extra_js %}
+<script>
+const colors = ['#1a6fc4','#f97316','#22c55e','#8b5cf6','#14b8a6','#ef4444','#f59e0b','#3b82f6'];
+new Chart(document.getElementById('monthlyChart'), {
+  type:'line',
+  data:{labels:{{ monthly_labels|safe }},datasets:[{label:'Expenses (₹)',data:{{ monthly_data|safe }},borderColor:'#1a6fc4',backgroundColor:'rgba(26,111,196,.08)',borderWidth:2,tension:.4,fill:true,pointBackgroundColor:'#1a6fc4',pointRadius:4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+c.parsed.y.toLocaleString('en-IN')}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f4f8'},ticks:{callback:v=>'₹'+(v>=100000?(v/100000).toFixed(1)+'L':v>=1000?(v/1000).toFixed(0)+'K':v)}}}}
+});
+const catLabels = {{ cat_labels|safe }};
+const catValues = {{ cat_values|safe }};
+if(catLabels.length){
+  new Chart(document.getElementById('catChart'),{
+    type:'doughnut',
+    data:{labels:catLabels,datasets:[{data:catValues,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:8}},tooltip:{callbacks:{label:c=>' ₹'+c.parsed.toLocaleString('en-IN')}}}}
+  });
+}
+const pNames = {{ project_names|safe }};
+const pCosts = {{ project_costs|safe }};
+if(pNames.length){
+  new Chart(document.getElementById('projectChart'),{
+    type:'bar',
+    data:{labels:pNames,datasets:[{label:'Cost (₹)',data:pCosts,backgroundColor:'#1a6fc4',borderRadius:6,barThickness:32}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+c.parsed.y.toLocaleString('en-IN')}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f4f8'},ticks:{callback:v=>'₹'+(v>=100000?(v/100000).toFixed(1)+'L':v>=1000?(v/1000).toFixed(0)+'K':v)}}}}
+  });
+}
+</script>
+{% endblock %}

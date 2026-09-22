@@ -1,0 +1,113 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Bills | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom">Billing</div>
+    <h1 class="page-title">Bills &amp; Invoices</h1>
+  </div>
+  <a href="{% url 'billing:create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Bill</a>
+</div>
+
+<!-- Search / Filter -->
+<div class="card mb-4">
+  <div class="card-body" style="padding:16px;">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search invoice no, client, supplier…">
+      </div>
+      <div class="col-md-3">
+        <select name="client" class="form-select">
+          <option value="">All Clients</option>
+          {% for c in clients %}<option value="{{ c.pk }}" {% if client_id == c.pk|stringformat:'s' %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All Status</option>
+          {% for val,label in status_choices %}<option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Search</button>
+      </div>
+      <div class="col-md-1">
+        <a href="{% url 'billing:list' %}" class="btn btn-outline-secondary w-100" title="Reset"><i class="fas fa-times"></i></a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fas fa-file-invoice" style="color:#1a6fc4;margin-right:8px;"></i>All Bills <span style="font-size:13px;font-weight:400;color:#64748b;">({{ total_count }})</span></h2>
+  </div>
+  {% if bills %}
+  <div class="table-responsive-custom">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Client</th>
+          <th>Supplier</th>
+          <th>Date</th>
+          <th>Items</th>
+          <th style="text-align:right;">Grand Total</th>
+          <th style="text-align:center;">Status</th>
+          <th style="text-align:center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bill in bills %}
+        <tr>
+          <td><a href="{% url 'billing:detail' bill.pk %}" style="font-weight:600;color:#1a6fc4;">{{ bill.invoice_number }}</a></td>
+          <td>
+            <div style="font-weight:500;font-size:13px;">{{ bill.client.name }}</div>
+            {% if bill.client.company %}<div style="font-size:11px;color:#64748b;">{{ bill.client.company }}</div>{% endif %}
+          </td>
+          <td style="font-size:13px;">{{ bill.supplier|default:"—" }}</td>
+          <td style="font-size:13px;">{{ bill.bill_date }}</td>
+          <td style="font-size:13px;text-align:center;">{{ bill.items.count }}</td>
+          <td style="text-align:right;font-weight:600;color:#1e293b;">₹{{ bill.grand_total|intcomma }}</td>
+          <td style="text-align:center;">
+            {% if bill.status == 'paid' %}<span class="badge-status active">Paid</span>
+            {% elif bill.status == 'draft' %}<span class="badge-status inactive">Draft</span>
+            {% elif bill.status == 'sent' %}<span class="badge-status" style="background:#dbeafe;color:#1d4ed8;">Sent</span>
+            {% elif bill.status == 'partially_paid' %}<span class="badge-status" style="background:#fef3c7;color:#b45309;">Partial</span>
+            {% elif bill.status == 'cancelled' %}<span class="badge-status" style="background:#fee2e2;color:#dc2626;">Cancelled</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center;">
+            <div style="display:flex;gap:6px;justify-content:center;">
+              <a href="{% url 'billing:detail' bill.pk %}" class="btn btn-outline-secondary btn-sm" title="View"><i class="fas fa-eye"></i></a>
+              <a href="{% url 'billing:edit' bill.pk %}" class="btn btn-outline-secondary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
+              <a href="{% url 'billing:export_excel' bill.pk %}" class="btn btn-outline-secondary btn-sm" title="Download Excel" style="color:#22c55e;"><i class="fas fa-file-excel"></i></a>
+              <form method="post" action="{% url 'billing:delete' bill.pk %}" onsubmit="return confirm('Delete {{ bill.invoice_number }}?');" style="margin:0;">
+                {% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm" style="color:#ef4444;" title="Delete"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- Pagination -->
+  {% if bills.has_other_pages %}
+  <div class="card-footer" style="display:flex;justify-content:center;gap:4px;">
+    {% if bills.has_previous %}<a href="?page={{ bills.previous_page_number }}&q={{ q }}&client={{ client_id }}&status={{ status }}" class="btn btn-outline-secondary btn-sm">«</a>{% endif %}
+    <span class="btn btn-primary btn-sm" style="pointer-events:none;">{{ bills.number }} / {{ bills.paginator.num_pages }}</span>
+    {% if bills.has_next %}<a href="?page={{ bills.next_page_number }}&q={{ q }}&client={{ client_id }}&status={{ status }}" class="btn btn-outline-secondary btn-sm">»</a>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-file-invoice empty-state-icon"></i>
+    <h3 class="empty-state-title">No bills found</h3>
+    <p class="empty-state-text">{% if q or client_id or status %}No bills match your filters.{% else %}Create your first bill to get started.{% endif %}</p>
+    <a href="{% url 'billing:create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Create Bill</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

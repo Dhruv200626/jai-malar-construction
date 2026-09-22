@@ -1,0 +1,28 @@
+databases:
+  - name: jai-malhar-db
+    plan: free
+    databaseName: jai_malhar_db
+    user: jai_malhar_user
+
+services:
+  - type: web
+    name: jai-malhar
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "yourdomain.com,www.yourdomain.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://yourdomain.com,https://www.yourdomain.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jai-malhar-db
+          property: connectionString

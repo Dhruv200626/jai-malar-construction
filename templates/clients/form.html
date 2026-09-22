@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1 class="page-title">{{ page_title }}</h1></div><a href="{% url 'clients:list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a></div>
+<div class="card" style="max-width:600px;"><div class="card-body">
+<form method="post">{% csrf_token %}
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label">Name *</label><input type="text" name="name" class="form-control" value="{{ client.name|default:'' }}" required></div>
+    <div class="col-md-6"><label class="form-label">Company</label><input type="text" name="company" class="form-control" value="{{ client.company|default:'' }}"></div>
+    <div class="col-md-6"><label class="form-label">Phone *</label><input type="text" name="phone" class="form-control" value="{{ client.phone|default:'' }}" required></div>
+    <div class="col-md-6"><label class="form-label">Email</label><input type="email" name="email" class="form-control" value="{{ client.email|default:'' }}"></div>
+    <div class="col-md-6"><label class="form-label">GST Number</label><input type="text" name="gst_number" class="form-control" value="{{ client.gst_number|default:'' }}"></div>
+    <div class="col-12"><label class="form-label">Address</label><textarea name="address" class="form-control" rows="2">{{ client.address|default:'' }}</textarea></div>
+    <div class="col-12"><label class="form-label">Notes</label><textarea name="notes" class="form-control" rows="2">{{ client.notes|default:'' }}</textarea></div>
+  </div>
+  <div style="margin-top:16px;display:flex;gap:8px;">
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Client</button>
+    <a href="{% url 'clients:list' %}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+</div></div>
+{% endblock %}

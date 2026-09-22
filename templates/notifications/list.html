@@ -1,0 +1,25 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Notifications | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1 class="page-title">Notifications</h1></div></div>
+{% if notifications %}
+<div class="card">
+  <div class="card-body" style="padding:0;">
+    {% for n in notifications %}
+    <div class="activity-item" style="padding:16px 20px;{% if not n.is_read %}background:#f8faff;{% endif %}">
+      <div class="activity-icon" style="background:{% if n.notification_type == 'low_stock' %}#fee2e2{% elif n.notification_type == 'deadline' %}#fef3c7{% elif n.notification_type == 'approval' %}#dbeafe{% else %}#e8f0fe{% endif %};">
+        <i class="fas {% if n.notification_type == 'low_stock' %}fa-exclamation-triangle{% elif n.notification_type == 'deadline' %}fa-clock{% elif n.notification_type == 'approval' %}fa-check-circle{% else %}fa-bell{% endif %}" style="color:{% if n.notification_type == 'low_stock' %}#ef4444{% elif n.notification_type == 'deadline' %}#f59e0b{% elif n.notification_type == 'approval' %}#3b82f6{% else %}#1a6fc4{% endif %};"></i>
+      </div>
+      <div class="activity-content">
+        <div class="activity-title">{{ n.title }}</div>
+        <div class="activity-meta">{{ n.message|truncatechars:80 }} &bull; {{ n.created_at|timesince }} ago</div>
+      </div>
+      {% if not n.is_read %}<span style="width:8px;height:8px;background:#1a6fc4;border-radius:50%;display:inline-block;flex-shrink:0;margin-top:8px;"></span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="card"><div class="empty-state"><i class="fas fa-bell empty-state-icon"></i><h3 class="empty-state-title">All caught up!</h3><p class="empty-state-text">No notifications at the moment.</p></div></div>
+{% endif %}
+{% endblock %}

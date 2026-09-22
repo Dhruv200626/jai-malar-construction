@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}{{ page_title }} | Jai Malhar{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom"><a href="{% url 'projects:list' %}">Projects</a> / {{ page_title }}</div>
+    <h1 class="page-title">{{ page_title }}</h1>
+  </div>
+  <a href="{% url 'projects:list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="row g-4">
+
+    <!-- Left Column -->
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header"><h2 class="card-title">Project Information</h2></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Project Name <span style="color:#ef4444">*</span></label>
+              <input type="text" name="name" class="form-control" placeholder="e.g. Residential Tower – Andheri" value="{{ project.name|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Client</label>
+              <select name="client" class="form-select">
+                <option value="">-- Select Client --</option>
+                {% for c in clients %}<option value="{{ c.pk }}" {% if project.client_id == c.pk %}selected{% endif %}>{{ c.name }} {% if c.company %}({{ c.company }}){% endif %}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Project Manager</label>
+              <select name="project_manager" class="form-select">
+                <option value="">-- Select Manager --</option>
+                {% for u in managers %}<option value="{{ u.pk }}" {% if project.project_manager_id == u.pk %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Location <span style="color:#ef4444">*</span></label>
+              <input type="text" name="location" class="form-control" placeholder="e.g. Andheri West, Mumbai" value="{{ project.location|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Project Type</label>
+              <select name="project_type" class="form-select">
+                {% for val, label in type_choices %}<option value="{{ val }}" {% if project.project_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select">
+                {% for val, label in status_choices %}<option value="{{ val }}" {% if project.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Start Date <span style="color:#ef4444">*</span></label>
+              <input type="date" name="start_date" class="form-control" value="{{ project.start_date|date:'Y-m-d'|default:'' }}" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Expected End Date <span style="color:#ef4444">*</span></label>
+              <input type="date" name="expected_end_date" class="form-control" value="{{ project.expected_end_date|date:'Y-m-d'|default:'' }}" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Actual End Date</label>
+              <input type="date" name="actual_end_date" class="form-control" value="{{ project.actual_end_date|date:'Y-m-d'|default:'' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <textarea name="description" class="form-control" rows="3" placeholder="Brief project description...">{{ project.description|default:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header"><h2 class="card-title">Budget & Progress</h2></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Budget (₹)</label>
+              <input type="number" name="budget" class="form-control" placeholder="0.00" step="0.01" min="0" value="{{ project.budget|default:'0' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Progress (%) <span id="progressVal">{{ project.progress|default:0 }}%</span></label>
+              <input type="range" name="progress" class="form-control" min="0" max="100" value="{{ project.progress|default:0 }}" oninput="document.getElementById('progressVal').textContent=this.value+'%'" style="padding:6px 0;">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Project Image</label>
+              <input type="file" name="image" class="form-control" accept="image/*">
+              {% if project.image %}<img src="{{ project.image.url }}" style="width:100%;border-radius:8px;margin-top:8px;max-height:120px;object-fit:cover;" alt="Current image">{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;"><i class="fas fa-save"></i> {% if project %}Update{% else %}Create{% endif %} Project</button>
+        <a href="{% url 'projects:list' %}" class="btn btn-outline-secondary"><i class="fas fa-times"></i></a>
+      </div>
+    </div>
+
+  </div>
+</form>
+{% endblock %}

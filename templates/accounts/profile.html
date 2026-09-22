@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile | Jai Malhar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom">
+      <a href="{% url 'dashboard:index' %}">Dashboard</a> / Profile
+    </div>
+    <h1 class="page-title">My Profile</h1>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body" style="text-align:center;padding:32px 20px;">
+        <div class="user-avatar avatar-md" style="width:80px;height:80px;font-size:28px;margin:0 auto 16px;">
+          {% if user.profile_photo %}
+            <img src="{{ user.profile_photo.url }}" alt="{{ user.full_name }}">
+          {% else %}
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          {% endif %}
+        </div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;">{{ user.full_name }}</h3>
+        <p style="font-size:13px;color:#64748b;margin-bottom:8px;">{{ user.email }}</p>
+        {% if user.role %}
+          <span class="badge badge-active">{{ user.role }}</span>
+        {% endif %}
+        {% if user.phone %}
+          <p style="font-size:13px;color:#64748b;margin-top:12px;"><i class="fas fa-phone" style="margin-right:6px;"></i>{{ user.phone }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Edit Profile</h2>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">First Name</label>
+                {{ form.first_name }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">Last Name</label>
+                {{ form.last_name }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">Phone</label>
+                {{ form.phone }}
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label">Profile Photo</label>
+                {{ form.profile_photo }}
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

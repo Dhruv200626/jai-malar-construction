@@ -1,0 +1,305 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}{{ page_title }} | Jai Malhar{% endblock %}
+{% block extra_css %}
+<style>
+.item-row td { vertical-align: middle; }
+.item-row input { font-size:13px; }
+.total-table td { padding:6px 12px; font-size:13px; }
+.total-table .grand td { font-weight:700; font-size:15px; background:#eff6ff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb-custom"><a href="{% url 'billing:list' %}">Bills</a> / {{ page_title }}</div>
+    <h1 class="page-title">{{ page_title }}</h1>
+  </div>
+  <a href="{% url 'billing:list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<form method="post" id="billForm">
+{% csrf_token %}
+<div class="row g-4">
+
+  <!-- Left col: Bill details -->
+  <div class="col-lg-8">
+
+    <!-- Client & Supplier -->
+    <div class="card mb-4">
+      <div class="card-header"><h2 class="card-title"><i class="fas fa-briefcase" style="color:#1a6fc4;margin-right:8px;"></i>Bill Details</h2></div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Client <span style="color:#ef4444;">*</span></label>
+            <select name="client" class="form-select" required>
+              <option value="">-- Select Client --</option>
+              {% for c in clients %}
+              <option value="{{ c.pk }}"
+                {% if bill and bill.client_id == c.pk %}selected
+                {% elif post and post.client == c.pk|stringformat:'s' %}selected{% endif %}>
+                {{ c.name }}{% if c.company %} ({{ c.company }}){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Supplier</label>
+            <select name="supplier" class="form-select">
+              <option value="">-- No Supplier --</option>
+              {% for s in suppliers %}
+              <option value="{{ s.pk }}"
+                {% if bill and bill.supplier_id == s.pk %}selected
+                {% elif post and post.supplier == s.pk|stringformat:'s' %}selected{% endif %}>
+                {{ s.name }}{% if s.company %} ({{ s.company }}){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Bill Date <span style="color:#ef4444;">*</span></label>
+            <input type="date" name="bill_date" class="form-control" required
+              value="{% if bill %}{{ bill.bill_date|date:'Y-m-d' }}{% elif post %}{{ post.bill_date }}{% else %}{% now 'Y-m-d' %}{% endif %}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Due Date</label>
+            <input type="date" name="due_date" class="form-control"
+              value="{% if bill and bill.due_date %}{{ bill.due_date|date:'Y-m-d' }}{% elif post %}{{ post.due_date }}{% endif %}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              {% for val,lbl in status_choices %}
+              <option value="{{ val }}" {% if bill and bill.status == val %}selected{% elif not bill and val == 'draft' %}selected{% endif %}>{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Payment Method</label>
+            <select name="payment_method" class="form-select">
+              {% for val,lbl in payment_choices %}
+              <option value="{{ val }}" {% if bill and bill.payment_method == val %}selected{% elif not bill and val == 'cash' %}selected{% endif %}>{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div class="card mb-4">
+      <div class="card-header" style="justify-content:space-between;">
+        <h2 class="card-title"><i class="fas fa-list" style="color:#f97316;margin-right:8px;"></i>Bill Items</h2>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="addRow"><i class="fas fa-plus"></i> Add Item</button>
+      </div>
+      <div class="table-responsive-custom">
+        <table class="data-table" id="itemsTable">
+          <thead>
+            <tr>
+              <th style="width:28px;">#</th>
+              <th>Description <span style="color:#ef4444;">*</span></th>
+              <th style="width:80px;">Unit</th>
+              <th style="width:90px;">Qty <span style="color:#ef4444;">*</span></th>
+              <th style="width:110px;">Rate (₹) <span style="color:#ef4444;">*</span></th>
+              <th style="width:110px;">Amount (₹)</th>
+              <th style="width:90px;">HSN/SAC</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="itemsBody">
+            {% if items %}
+              {% for item in items %}
+              <tr class="item-row">
+                <td class="row-num" style="text-align:center;color:#94a3b8;font-size:12px;">{{ forloop.counter }}</td>
+                <td><input type="text" name="item_description" class="form-control" value="{{ item.description }}" placeholder="Item / service description" required></td>
+                <td><input type="text" name="item_unit" class="form-control" value="{{ item.unit }}" placeholder="pcs"></td>
+                <td><input type="number" name="item_quantity" class="form-control qty-input" value="{{ item.quantity }}" min="0.01" step="0.01" required></td>
+                <td><input type="number" name="item_rate" class="form-control rate-input" value="{{ item.rate }}" min="0.01" step="0.01" required></td>
+                <td><input type="number" name="item_amount" class="form-control amount-input" value="{{ item.amount }}" readonly style="background:#f8fafc;"></td>
+                <td><input type="text" name="item_hsn" class="form-control" value="{{ item.hsn_code }}" placeholder="HSN"></td>
+                <td><button type="button" class="btn btn-sm remove-row" style="color:#ef4444;background:none;border:none;font-size:16px;"><i class="fas fa-times"></i></button></td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <!-- default empty row -->
+              <tr class="item-row">
+                <td class="row-num" style="text-align:center;color:#94a3b8;font-size:12px;">1</td>
+                <td><input type="text" name="item_description" class="form-control" placeholder="Item / service description" required></td>
+                <td><input type="text" name="item_unit" class="form-control" placeholder="pcs"></td>
+                <td><input type="number" name="item_quantity" class="form-control qty-input" min="0.01" step="0.01" placeholder="0.00" required></td>
+                <td><input type="number" name="item_rate" class="form-control rate-input" min="0.01" step="0.01" placeholder="0.00" required></td>
+                <td><input type="number" name="item_amount" class="form-control amount-input" readonly placeholder="0.00" style="background:#f8fafc;"></td>
+                <td><input type="text" name="item_hsn" class="form-control" placeholder="HSN"></td>
+                <td><button type="button" class="btn btn-sm remove-row" style="color:#ef4444;background:none;border:none;font-size:16px;"><i class="fas fa-times"></i></button></td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Notes & Terms -->
+    <div class="card mb-4">
+      <div class="card-header"><h2 class="card-title"><i class="fas fa-sticky-note" style="color:#8b5cf6;margin-right:8px;"></i>Notes &amp; Terms</h2></div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Any notes for the client…">{% if bill %}{{ bill.notes }}{% endif %}</textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Terms &amp; Conditions</label>
+            <textarea name="terms" class="form-control" rows="3" placeholder="Payment terms, warranties…">{% if bill %}{{ bill.terms }}{% endif %}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /left col -->
+
+  <!-- Right col: Totals -->
+  <div class="col-lg-4">
+    <div class="card" style="position:sticky;top:80px;">
+      <div class="card-header"><h2 class="card-title"><i class="fas fa-calculator" style="color:#22c55e;margin-right:8px;"></i>Summary</h2></div>
+      <div class="card-body" style="padding:0;">
+        <table class="total-table" style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="color:#64748b;">Subtotal</td>
+            <td style="text-align:right;font-weight:600;">₹<span id="previewSubtotal">0.00</span></td>
+          </tr>
+          <tr>
+            <td style="color:#64748b;">
+              Discount
+              <input type="number" name="discount_percent" id="discountPct" class="form-control form-control-sm d-inline-block" style="width:60px;margin-left:4px;"
+                value="{% if bill %}{{ bill.discount_percent }}{% else %}0{% endif %}" min="0" max="100" step="0.01" placeholder="0">
+              %
+            </td>
+            <td style="text-align:right;color:#ef4444;">− ₹<span id="previewDiscount">0.00</span></td>
+          </tr>
+          <tr>
+            <td style="color:#64748b;">Taxable Amount</td>
+            <td style="text-align:right;font-weight:600;">₹<span id="previewTaxable">0.00</span></td>
+          </tr>
+          <tr>
+            <td style="color:#64748b;">
+              GST
+              <input type="number" name="gst_percent" id="gstPct" class="form-control form-control-sm d-inline-block" style="width:60px;margin-left:4px;"
+                value="{% if bill %}{{ bill.gst_percent }}{% else %}18{% endif %}" min="0" max="100" step="0.01" placeholder="18">
+              %
+            </td>
+            <td style="text-align:right;color:#f97316;">+ ₹<span id="previewGst">0.00</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:11px;color:#94a3b8;padding-left:16px;">CGST</td>
+            <td style="text-align:right;font-size:11px;color:#94a3b8;">₹<span id="previewCgst">0.00</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:11px;color:#94a3b8;padding-left:16px;">SGST</td>
+            <td style="text-align:right;font-size:11px;color:#94a3b8;">₹<span id="previewSgst">0.00</span></td>
+          </tr>
+          <tr class="grand" style="border-top:2px solid #1a6fc4;">
+            <td style="padding:12px;">Grand Total</td>
+            <td style="text-align:right;padding:12px;color:#1a6fc4;font-size:16px;">₹<span id="previewGrand">0.00</span></td>
+          </tr>
+        </table>
+      </div>
+      <div class="card-footer" style="display:flex;gap:8px;">
+        <a href="{% url 'billing:list' %}" class="btn btn-outline-secondary" style="flex:1;">Cancel</a>
+        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> Save Bill</button>
+      </div>
+    </div>
+  </div><!-- /right col -->
+
+</div><!-- /row -->
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Row management ──
+let rowCount = document.querySelectorAll('.item-row').length;
+
+document.getElementById('addRow').addEventListener('click', function() {
+  rowCount++;
+  const tbody = document.getElementById('itemsBody');
+  const tr = document.createElement('tr');
+  tr.className = 'item-row';
+  tr.innerHTML = `
+    <td class="row-num" style="text-align:center;color:#94a3b8;font-size:12px;">${rowCount}</td>
+    <td><input type="text" name="item_description" class="form-control" placeholder="Item / service description" required></td>
+    <td><input type="text" name="item_unit" class="form-control" placeholder="pcs"></td>
+    <td><input type="number" name="item_quantity" class="form-control qty-input" min="0.01" step="0.01" placeholder="0.00" required></td>
+    <td><input type="number" name="item_rate" class="form-control rate-input" min="0.01" step="0.01" placeholder="0.00" required></td>
+    <td><input type="number" name="item_amount" class="form-control amount-input" readonly placeholder="0.00" style="background:#f8fafc;"></td>
+    <td><input type="text" name="item_hsn" class="form-control" placeholder="HSN"></td>
+    <td><button type="button" class="btn btn-sm remove-row" style="color:#ef4444;background:none;border:none;font-size:16px;"><i class="fas fa-times"></i></button></td>
+  `;
+  tbody.appendChild(tr);
+  attachRowListeners(tr);
+  updateTotals();
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.remove-row')) {
+    const rows = document.querySelectorAll('.item-row');
+    if (rows.length > 1) {
+      e.target.closest('.item-row').remove();
+      renumberRows();
+      updateTotals();
+    }
+  }
+});
+
+function renumberRows() {
+  document.querySelectorAll('.item-row').forEach((r, i) => {
+    const n = r.querySelector('.row-num');
+    if (n) n.textContent = i + 1;
+  });
+  rowCount = document.querySelectorAll('.item-row').length;
+}
+
+function attachRowListeners(row) {
+  row.querySelectorAll('.qty-input, .rate-input').forEach(input => {
+    input.addEventListener('input', function() {
+      const tr = this.closest('.item-row');
+      const qty = parseFloat(tr.querySelector('.qty-input').value) || 0;
+      const rate = parseFloat(tr.querySelector('.rate-input').value) || 0;
+      const amt = tr.querySelector('.amount-input');
+      amt.value = (qty * rate).toFixed(2);
+      updateTotals();
+    });
+  });
+}
+
+// attach listeners to existing rows
+document.querySelectorAll('.item-row').forEach(attachRowListeners);
+
+document.getElementById('discountPct').addEventListener('input', updateTotals);
+document.getElementById('gstPct').addEventListener('input', updateTotals);
+
+function fmt(n) { return n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+function updateTotals() {
+  let subtotal = 0;
+  document.querySelectorAll('.amount-input').forEach(a => {
+    subtotal += parseFloat(a.value) || 0;
+  });
+  const discPct  = parseFloat(document.getElementById('discountPct').value) || 0;
+  const gstPct   = parseFloat(document.getElementById('gstPct').value) || 18;
+  const discount = subtotal * discPct / 100;
+  const taxable  = subtotal - discount;
+  const gst      = taxable * gstPct / 100;
+  const grand    = taxable + gst;
+
+  document.getElementById('previewSubtotal').textContent = fmt(subtotal);
+  document.getElementById('previewDiscount').textContent = fmt(discount);
+  document.getElementById('previewTaxable').textContent  = fmt(taxable);
+  document.getElementById('previewGst').textContent      = fmt(gst);
+  document.getElementById('previewCgst').textContent     = fmt(gst / 2);
+  document.getElementById('previewSgst').textContent     = fmt(gst / 2);
+  document.getElementById('previewGrand').textContent    = fmt(grand);
+}
+
+// Init totals on load
+updateTotals();
+</script>
+{% endblock %}
