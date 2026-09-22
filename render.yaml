@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: jai-malar-construction
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "jai-malar-construction.onrender.com,jai-malhar-contruction.in,www.jai-malhar-contruction.in"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jai-malar-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+databases:
+  - name: jai-malar-db
+    databaseName: jai_malar_db
+    user: jai_malar_user
+    plan: free
