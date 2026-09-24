@@ -34,7 +34,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Close sidebar on escape key
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeSidebar();
+    if (e.key === 'Escape') {
+      closeSidebar();
+      closeQuickActionsMenu();
+      closeMoreMenu();
+    }
   });
 
   // ── Mobile Quick Actions FAB ─────────────────────────────
@@ -46,18 +50,70 @@ document.addEventListener('DOMContentLoaded', function () {
   function openQuickActions() {
     quickActionsOverlay?.classList.add('show');
     quickActionsMenu?.classList.add('show');
+    fabBtn?.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
 
   function closeQuickActionsMenu() {
     quickActionsOverlay?.classList.remove('show');
     quickActionsMenu?.classList.remove('show');
+    fabBtn?.classList.remove('active');
     document.body.style.overflow = '';
   }
 
-  fabBtn?.addEventListener('click', openQuickActions);
+  fabBtn?.addEventListener('click', function () {
+    if (quickActionsMenu?.classList.contains('show')) {
+      closeQuickActionsMenu();
+    } else {
+      closeMoreMenu();
+      openQuickActions();
+    }
+  });
   quickActionsOverlay?.addEventListener('click', closeQuickActionsMenu);
   closeQuickActions?.addEventListener('click', closeQuickActionsMenu);
+
+  // ── More Menu Drawer ──────────────────────────────────────
+  const moreNavBtn = document.getElementById('moreNavBtn');
+  const moreMenuOverlay = document.getElementById('moreMenuOverlay');
+  const moreMenuDrawer = document.getElementById('moreMenuDrawer');
+  const closeMoreMenuBtn = document.getElementById('closeMoreMenu');
+
+  function openMoreMenu() {
+    moreMenuOverlay?.classList.add('show');
+    moreMenuDrawer?.classList.add('show');
+    moreNavBtn?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMoreMenu() {
+    moreMenuOverlay?.classList.remove('show');
+    moreMenuDrawer?.classList.remove('show');
+    moreNavBtn?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  moreNavBtn?.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (moreMenuDrawer?.classList.contains('show')) {
+      closeMoreMenu();
+    } else {
+      closeQuickActionsMenu();
+      openMoreMenu();
+    }
+  });
+
+  moreMenuOverlay?.addEventListener('click', closeMoreMenu);
+  closeMoreMenuBtn?.addEventListener('click', closeMoreMenu);
+
+  // Swipe down to close more menu
+  let touchStartY = 0;
+  moreMenuDrawer?.addEventListener('touchstart', function (e) {
+    touchStartY = e.touches[0].clientY;
+  });
+  moreMenuDrawer?.addEventListener('touchend', function (e) {
+    const diff = e.changedTouches[0].clientY - touchStartY;
+    if (diff > 80) closeMoreMenu();
+  });
 
   // ── Toast Auto-dismiss ───────────────────────────────────
   function initToasts() {

@@ -116,16 +116,108 @@
 
   </div><!-- /.main-wrapper -->
 
+  {% comment %}Mobile Bottom Navigation{% endcomment %}
   <nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation">
     <div class="mobile-nav-items">
-      <a href="{% url 'dashboard:index' %}" class="mobile-nav-item"><i class="fas fa-home"></i><span>Home</span></a>
-      <a href="{% url 'reports:daily' %}" class="mobile-nav-item"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+      <a href="{% url 'dashboard:index' %}" class="mobile-nav-item {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i><span>Home</span>
+      </a>
+      <a href="{% url 'projects:list' %}" class="mobile-nav-item {% if request.resolver_match.app_name == 'projects' %}active{% endif %}">
+        <i class="fas fa-building"></i><span>Projects</span>
+      </a>
       <div class="mobile-fab">
         <button class="mobile-fab-btn" id="fabBtn" aria-label="Quick actions"><i class="fas fa-plus"></i></button>
       </div>
-      <a href="{% url 'accounts:profile' %}" class="mobile-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+      <a href="{% url 'employees:list' %}" class="mobile-nav-item {% if request.resolver_match.app_name == 'employees' %}active{% endif %}">
+        <i class="fas fa-users"></i><span>Employees</span>
+      </a>
+      <a href="#" class="mobile-nav-item" id="moreNavBtn">
+        <i class="fas fa-grid-2"></i><span>More</span>
+      </a>
     </div>
   </nav>
+
+  <!-- More Menu Drawer -->
+  <div class="more-menu-overlay" id="moreMenuOverlay"></div>
+  <div class="more-menu-drawer" id="moreMenuDrawer" role="dialog" aria-modal="true" aria-label="More navigation">
+    <div class="more-menu-handle"></div>
+    <div class="more-menu-header">
+      <span class="more-menu-title">All Sections</span>
+      <button class="more-menu-close" id="closeMoreMenu" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="more-menu-section">
+      <div class="more-menu-section-label">Operations</div>
+      <div class="more-menu-grid">
+        <a href="{% url 'attendance:list' %}" class="more-menu-item">
+          <div class="more-menu-icon teal"><i class="fas fa-clipboard-check"></i></div>
+          <span>Attendance</span>
+        </a>
+        <a href="{% url 'materials:list' %}" class="more-menu-item">
+          <div class="more-menu-icon orange"><i class="fas fa-boxes"></i></div>
+          <span>Materials</span>
+        </a>
+        <a href="{% url 'expenses:list' %}" class="more-menu-item">
+          <div class="more-menu-icon green"><i class="fas fa-rupee-sign"></i></div>
+          <span>Expenses</span>
+        </a>
+        <a href="{% url 'equipment:list' %}" class="more-menu-item">
+          <div class="more-menu-icon blue"><i class="fas fa-truck"></i></div>
+          <span>Equipment</span>
+        </a>
+        <a href="{% url 'suppliers:list' %}" class="more-menu-item">
+          <div class="more-menu-icon purple"><i class="fas fa-store"></i></div>
+          <span>Suppliers</span>
+        </a>
+        <a href="{% url 'clients:list' %}" class="more-menu-item">
+          <div class="more-menu-icon indigo"><i class="fas fa-briefcase"></i></div>
+          <span>Clients</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="more-menu-section">
+      <div class="more-menu-section-label">Reports & Billing</div>
+      <div class="more-menu-grid">
+        <a href="{% url 'reports:daily' %}" class="more-menu-item">
+          <div class="more-menu-icon blue"><i class="fas fa-file-alt"></i></div>
+          <span>Daily Report</span>
+        </a>
+        <a href="{% url 'reports:monthly' %}" class="more-menu-item">
+          <div class="more-menu-icon accent"><i class="fas fa-calendar-alt"></i></div>
+          <span>Monthly</span>
+        </a>
+        <a href="{% url 'billing:list' %}" class="more-menu-item">
+          <div class="more-menu-icon green"><i class="fas fa-file-invoice"></i></div>
+          <span>Bills</span>
+        </a>
+        <a href="{% url 'billing:create' %}" class="more-menu-item">
+          <div class="more-menu-icon teal"><i class="fas fa-plus-circle"></i></div>
+          <span>New Bill</span>
+        </a>
+      </div>
+    </div>
+
+    {% if user.is_admin %}
+    <div class="more-menu-section">
+      <div class="more-menu-section-label">System</div>
+      <div class="more-menu-grid">
+        <a href="{% url 'accounts:users_list' %}" class="more-menu-item">
+          <div class="more-menu-icon red"><i class="fas fa-user-cog"></i></div>
+          <span>Users</span>
+        </a>
+        <a href="{% url 'accounts:profile' %}" class="more-menu-item">
+          <div class="more-menu-icon blue"><i class="fas fa-user-circle"></i></div>
+          <span>Profile</span>
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'accounts:logout' %}" class="more-menu-logout">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+  </div>
 
   <div class="quick-actions-overlay" id="quickActionsOverlay"></div>
   <div class="quick-actions-menu" id="quickActionsMenu" role="dialog" aria-modal="true">
