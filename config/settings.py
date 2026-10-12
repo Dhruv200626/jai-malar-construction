@@ -24,9 +24,9 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.humanize',
+    'cloudinary_storage',  # must be IMMEDIATELY after staticfiles
     'cloudinary',
-    'cloudinary_storage',
+    'django.contrib.humanize',
 ]
 
 THIRD_PARTY_APPS = [
@@ -145,8 +145,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise for serving static files in production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise — handled via STORAGES dict below
 
 # Media files
 MEDIA_URL = '/media/'
@@ -162,7 +161,6 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': CLOUDINARY_API_SECRET,
 }
 
-# Use Cloudinary for media only when credentials are provided
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     import cloudinary
     cloudinary.config(
@@ -171,8 +169,25 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         api_secret=CLOUDINARY_API_SECRET,
         secure=True,
     )
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/'
+    # Django 4.2+ STORAGES dict — this is what actually overrides default_storage
+    STORAGES = {
+        'default': {
+            'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
+    # Do NOT override MEDIA_URL — django-cloudinary-storage generates full URLs itself
+else:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
