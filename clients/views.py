@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import Client
+from accounts.decorators import admin_required
 
 
 @login_required
@@ -18,6 +19,7 @@ def client_list(request):
 
 
 @login_required
+@admin_required
 def client_add(request):
     if request.method == 'POST':
         try:
@@ -38,6 +40,7 @@ def client_add(request):
 
 
 @login_required
+@admin_required
 def client_edit(request, pk):
     c = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':
@@ -58,6 +61,7 @@ def client_edit(request, pk):
 
 
 @login_required
+@admin_required
 def client_delete(request, pk):
     c = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':

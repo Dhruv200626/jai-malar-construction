@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import Supplier
+from accounts.decorators import admin_required
 
 
 @login_required
@@ -18,6 +19,7 @@ def supplier_list(request):
 
 
 @login_required
+@admin_required
 def supplier_add(request):
     if request.method == 'POST':
         try:
@@ -40,6 +42,7 @@ def supplier_add(request):
 
 
 @login_required
+@admin_required
 def supplier_edit(request, pk):
     s = get_object_or_404(Supplier, pk=pk)
     if request.method == 'POST':
@@ -61,6 +64,7 @@ def supplier_edit(request, pk):
 
 
 @login_required
+@admin_required
 def supplier_delete(request, pk):
     s = get_object_or_404(Supplier, pk=pk)
     if request.method == 'POST':

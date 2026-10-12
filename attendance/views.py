@@ -7,6 +7,7 @@ from django.utils import timezone
 from .models import Attendance
 from employees.models import Employee
 from projects.models import Project
+from accounts.decorators import admin_required
 
 
 @login_required
@@ -43,6 +44,7 @@ def attendance_list(request):
 
 
 @login_required
+@admin_required
 def mark_attendance(request):
     projects = Project.objects.filter(status='active')
     today = timezone.now().date().isoformat()
@@ -122,6 +124,7 @@ def mark_attendance(request):
 
 
 @login_required
+@admin_required
 def attendance_delete(request, pk):
     att = get_object_or_404(Attendance, pk=pk)
     if request.method == 'POST':

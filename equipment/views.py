@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import Equipment
 from projects.models import Project
+from accounts.decorators import admin_required
 
 
 @login_required
@@ -28,6 +29,7 @@ def equipment_list(request):
 
 
 @login_required
+@admin_required
 def equipment_add(request):
     projects = Project.objects.filter(status__in=['active', 'upcoming'])
     if request.method == 'POST':
@@ -60,6 +62,7 @@ def equipment_add(request):
 
 
 @login_required
+@admin_required
 def equipment_edit(request, pk):
     eq = get_object_or_404(Equipment, pk=pk)
     projects = Project.objects.filter(status__in=['active', 'upcoming'])
@@ -91,6 +94,7 @@ def equipment_edit(request, pk):
 
 
 @login_required
+@admin_required
 def equipment_delete(request, pk):
     eq = get_object_or_404(Equipment, pk=pk)
     if request.method == 'POST':

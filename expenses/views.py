@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Expense
 from projects.models import Project
+from accounts.decorators import admin_required
 
 
 @login_required
@@ -41,6 +42,7 @@ def expense_list(request):
 
 
 @login_required
+@admin_required
 def expense_add(request):
     projects = Project.objects.filter(status__in=['active', 'upcoming'])
     if request.method == 'POST':
@@ -72,6 +74,7 @@ def expense_add(request):
 
 
 @login_required
+@admin_required
 def expense_edit(request, pk):
     exp = get_object_or_404(Expense, pk=pk)
     projects = Project.objects.filter(status__in=['active', 'upcoming'])
@@ -100,6 +103,7 @@ def expense_edit(request, pk):
 
 
 @login_required
+@admin_required
 def expense_approve(request, pk):
     exp = get_object_or_404(Expense, pk=pk)
     if request.method == 'POST':
@@ -116,6 +120,7 @@ def expense_approve(request, pk):
 
 
 @login_required
+@admin_required
 def expense_delete(request, pk):
     exp = get_object_or_404(Expense, pk=pk)
     if request.method == 'POST':

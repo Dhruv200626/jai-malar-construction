@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from .models import Material, MaterialTransaction
 from suppliers.models import Supplier
 from projects.models import Project
+from accounts.decorators import admin_required
 
 
 @login_required
@@ -26,6 +27,7 @@ def material_list(request):
 
 
 @login_required
+@admin_required
 def material_add(request):
     suppliers = Supplier.objects.filter(is_active=True)
     if request.method == 'POST':
@@ -54,6 +56,7 @@ def material_add(request):
 
 
 @login_required
+@admin_required
 def material_edit(request, pk):
     mat = get_object_or_404(Material, pk=pk)
     suppliers = Supplier.objects.filter(is_active=True)
@@ -81,6 +84,7 @@ def material_edit(request, pk):
 
 
 @login_required
+@admin_required
 def material_delete(request, pk):
     mat = get_object_or_404(Material, pk=pk)
     if request.method == 'POST':
@@ -117,6 +121,7 @@ def transactions(request):
 
 
 @login_required
+@admin_required
 def add_transaction(request):
     materials = Material.objects.filter(is_active=True)
     projects = Project.objects.filter(status__in=['active', 'upcoming'])

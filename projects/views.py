@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from .models import Project
 from clients.models import Client
 from accounts.models import User
+from accounts.decorators import admin_required
 
 
 @login_required
@@ -39,6 +40,7 @@ def project_list(request):
 
 
 @login_required
+@admin_required
 def project_add(request):
     clients = Client.objects.filter(is_active=True)
     managers = User.objects.filter(is_active=True).select_related('role')
@@ -100,6 +102,7 @@ def project_detail(request, pk):
 
 
 @login_required
+@admin_required
 def project_edit(request, pk):
     project = get_object_or_404(Project, pk=pk)
     clients = Client.objects.filter(is_active=True)
@@ -137,6 +140,7 @@ def project_edit(request, pk):
 
 
 @login_required
+@admin_required
 def project_delete(request, pk):
     project = get_object_or_404(Project, pk=pk)
     if request.method == 'POST':

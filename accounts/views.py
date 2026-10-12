@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import LoginForm, SignupForm, UserCreateForm, ProfileUpdateForm, PasswordChangeCustomForm
 from .models import User, Role
+from .decorators import admin_required
 
 
 def login_view(request):
@@ -93,19 +94,15 @@ def change_password_view(request):
 
 
 @login_required
+@admin_required
 def users_list(request):
-    if not request.user.is_admin():
-        messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('dashboard:index')
     users = User.objects.select_related('role').order_by('-created_at')
     return render(request, 'accounts/users_list.html', {'users': users})
 
 
 @login_required
+@admin_required
 def user_create(request):
-    if not request.user.is_admin():
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard:index')
     if request.method == 'POST':
         form = UserCreateForm(request.POST, request.FILES)
         if form.is_valid():

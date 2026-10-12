@@ -13,6 +13,7 @@ import json
 from .models import Bill, BillItem
 from clients.models import Client
 from suppliers.models import Supplier
+from accounts.decorators import admin_required
 
 
 # ─────────────────────────────────────────────
@@ -110,6 +111,7 @@ def bill_list(request):
 # ─────────────────────────────────────────────
 
 @login_required
+@admin_required
 def bill_create(request):
     clients   = Client.objects.filter(is_active=True).order_by('name')
     suppliers = Supplier.objects.filter(is_active=True).order_by('name')
@@ -191,6 +193,7 @@ def bill_detail(request, pk):
 # ─────────────────────────────────────────────
 
 @login_required
+@admin_required
 def bill_edit(request, pk):
     bill      = get_object_or_404(Bill, pk=pk)
     clients   = Client.objects.filter(is_active=True).order_by('name')
@@ -230,6 +233,7 @@ def bill_edit(request, pk):
 # ─────────────────────────────────────────────
 
 @login_required
+@admin_required
 def bill_delete(request, pk):
     bill = get_object_or_404(Bill, pk=pk)
     if request.method == 'POST':

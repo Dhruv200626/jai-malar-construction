@@ -8,6 +8,7 @@ from .models import DailyReport
 from projects.models import Project
 from expenses.models import Expense
 from attendance.models import Attendance
+from accounts.decorators import admin_required
 import json
 
 
@@ -27,6 +28,7 @@ def daily_reports(request):
 
 
 @login_required
+@admin_required
 def daily_report_add(request):
     projects = Project.objects.filter(status='active')
     today = timezone.now().date()

@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import Employee
 from projects.models import Project
+from accounts.decorators import admin_required
 
 
 @login_required
@@ -39,6 +40,7 @@ def employee_list(request):
 
 
 @login_required
+@admin_required
 def employee_add(request):
     projects = Project.objects.filter(status__in=['active', 'upcoming'])
     if request.method == 'POST':
@@ -85,6 +87,7 @@ def employee_detail(request, pk):
 
 
 @login_required
+@admin_required
 def employee_edit(request, pk):
     emp = get_object_or_404(Employee, pk=pk)
     projects = Project.objects.filter(status__in=['active', 'upcoming'])
@@ -121,6 +124,7 @@ def employee_edit(request, pk):
 
 
 @login_required
+@admin_required
 def employee_delete(request, pk):
     emp = get_object_or_404(Employee, pk=pk)
     if request.method == 'POST':
