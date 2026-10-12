@@ -11,7 +11,12 @@ from accounts.models import User
 
 @login_required
 def project_list(request):
-    qs = Project.objects.select_related('client', 'project_manager').order_by('-created_at')
+    user = request.user
+    # Every user sees only their own projects
+    qs = Project.objects.select_related('client', 'project_manager').filter(
+        created_by=user
+    ).order_by('-created_at')
+
     q = request.GET.get('q', '')
     status = request.GET.get('status', '')
     if q:
@@ -25,10 +30,10 @@ def project_list(request):
         'q': q, 'status': status,
         'status_choices': Project.STATUS_CHOICES,
         'counts': {
-            'all': Project.objects.count(),
-            'active': Project.objects.filter(status='active').count(),
-            'completed': Project.objects.filter(status='completed').count(),
-            'upcoming': Project.objects.filter(status='upcoming').count(),
+            'all': qs.count(),
+            'active': qs.filter(status='active').count(),
+            'completed': qs.filter(status='completed').count(),
+            'upcoming': qs.filter(status='upcoming').count(),
         }
     })
 

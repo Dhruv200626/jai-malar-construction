@@ -10,7 +10,10 @@ from projects.models import Project
 
 @login_required
 def expense_list(request):
-    qs = Expense.objects.select_related('project', 'created_by').order_by('-date')
+    user = request.user
+    qs = Expense.objects.select_related('project', 'created_by').filter(
+        created_by=user
+    ).order_by('-date')
     q = request.GET.get('q', '')
     cat = request.GET.get('category', '')
     status = request.GET.get('status', '')

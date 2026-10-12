@@ -19,7 +19,13 @@
       <div class="card-body" style="text-align:center;padding:32px 20px;">
         <div class="user-avatar avatar-md" style="width:80px;height:80px;font-size:28px;margin:0 auto 16px;">
           {% if user.profile_photo %}
-            <img src="{{ user.profile_photo.url }}" alt="{{ user.full_name }}">
+            {% with photo_url=user.profile_photo.url %}
+              {% if 'cloudinary.com' in photo_url or photo_url|slice:':4' == 'http' %}
+                <img src="{{ photo_url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+              {% else %}
+                <img src="{{ photo_url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+              {% endif %}
+            {% endwith %}
           {% else %}
             {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
           {% endif %}

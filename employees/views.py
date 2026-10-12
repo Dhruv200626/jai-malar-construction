@@ -9,7 +9,10 @@ from projects.models import Project
 
 @login_required
 def employee_list(request):
-    qs = Employee.objects.select_related('assigned_project').order_by('full_name')
+    user = request.user
+    qs = Employee.objects.select_related('assigned_project').filter(
+        created_by=user
+    ).order_by('full_name')
     q = request.GET.get('q', '')
     status = request.GET.get('status', '')
     emp_type = request.GET.get('type', '')
@@ -30,8 +33,8 @@ def employee_list(request):
         'projects': Project.objects.filter(status='active'),
         'type_choices': Employee.TYPE_CHOICES,
         'status_choices': Employee.STATUS_CHOICES,
-        'total': Employee.objects.count(),
-        'active': Employee.objects.filter(status='active').count(),
+        'total': qs.count(),
+        'active': qs.filter(status='active').count(),
     })
 
 
@@ -58,6 +61,7 @@ def employee_add(request):
             e.assigned_project_id = proj_id if proj_id else None
             if request.FILES.get('profile_photo'):
                 e.profile_photo = request.FILES['profile_photo']
+            e.created_by = request.user
             e.save()
             messages.success(request, f'Worker "{e.full_name}" added successfully.')
             return redirect('employees:list')

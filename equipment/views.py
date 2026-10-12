@@ -9,7 +9,9 @@ from projects.models import Project
 
 @login_required
 def equipment_list(request):
-    qs = Equipment.objects.select_related('project').order_by('name')
+    qs = Equipment.objects.select_related('project').filter(
+        created_by=request.user
+    ).order_by('name')
     q = request.GET.get('q', '')
     status = request.GET.get('status', '')
     if q:
@@ -44,6 +46,7 @@ def equipment_add(request):
             e.end_date = end if end else None
             proj_id = request.POST.get('project')
             e.project_id = proj_id if proj_id else None
+            e.created_by = request.user
             e.save()
             messages.success(request, f'Equipment "{e.name}" added.')
             return redirect('equipment:list')

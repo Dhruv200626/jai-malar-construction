@@ -8,7 +8,7 @@ from .models import Supplier
 
 @login_required
 def supplier_list(request):
-    qs = Supplier.objects.all().order_by('name')
+    qs = Supplier.objects.filter(created_by=request.user).order_by('name')
     q = request.GET.get('q', '')
     if q:
         qs = qs.filter(Q(name__icontains=q) | Q(company__icontains=q) | Q(phone__icontains=q))
@@ -30,6 +30,7 @@ def supplier_add(request):
             s.gst_number = request.POST.get('gst_number', '')
             s.materials_supplied = request.POST.get('materials_supplied', '')
             s.notes = request.POST.get('notes', '')
+            s.created_by = request.user
             s.save()
             messages.success(request, f'Supplier "{s.name}" added.')
             return redirect('suppliers:list')

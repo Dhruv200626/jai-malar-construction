@@ -2,10 +2,10 @@
 Accounts - Views: Login, Signup, Logout, Profile, User Management, Error pages
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import LoginForm, SignupForm, UserCreateForm, ProfileUpdateForm
+from .forms import LoginForm, SignupForm, UserCreateForm, ProfileUpdateForm, PasswordChangeCustomForm
 from .models import User, Role
 
 
@@ -61,7 +61,35 @@ def profile_view(request):
             return redirect('accounts:profile')
     else:
         form = ProfileUpdateForm(instance=request.user)
-    return render(request, 'accounts/profile.html', {'form': form})
+
+    password_form = PasswordChangeCustomForm()
+    return render(request, 'accounts/profile.html', {
+        'form': form,
+        'password_form': password_form,
+    })
+
+
+@login_required
+def change_password_view(request):
+    if request.method == 'POST':
+        form = PasswordChangeCustomForm(request.POST)
+        if form.is_valid():
+            current = form.cleaned_data['current_password']
+            new_password = form.cleaned_data['new_password1']
+            # Verify current password
+            if not request.user.check_password(current):
+                messages.error(request, 'Current password is incorrect.')
+                return redirect('accounts:profile')
+            request.user.set_password(new_password)
+            request.user.save()
+            # Keep user logged in after password change
+            update_session_auth_hash(request, request.user)
+            messages.success(request, 'Password changed successfully.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+    return redirect('accounts:profile')
 
 
 @login_required

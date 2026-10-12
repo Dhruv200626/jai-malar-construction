@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Client(models.Model):
@@ -10,6 +11,10 @@ class Client(models.Model):
     gst_number = models.CharField(max_length=20, blank=True)
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='created_clients'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
